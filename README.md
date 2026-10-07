@@ -1,6 +1,7 @@
 <p align="center">
   <img src="docs/images/banner.png" alt="terrible-harness" width="720">
 </p>
+
 # This is a Terrible Harness, not going to lie (Formerly AskGPT. I still refer to it as AskGPT.)
 First,
 
