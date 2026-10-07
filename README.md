@@ -42,8 +42,7 @@ Just `askgpt`. (pun intended)
 
 ### YOU DIDNT SPECIFY HOW I SHOULD RUN IT LIKE!!
 
-Figure it out on your own. If you want to read Antigravity's README.md.
-It's at commit 7986f1be50385eae5a4c823768e615bdb4454454.
+Figure it out on your own. If you want to read Antigravity's README.md its at commit 7986f1be.
 Or you can use --help aswell.
 There's a bug here which I won't fix: you don't type in the model name itself.
 You type in (model company)/(model)
