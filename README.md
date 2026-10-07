@@ -1,6 +1,9 @@
 # askgpt
 
-A modern, fast CLI assistant that connects to any LLM API (Groq, OpenAI, Anthropic, Ollama, llama.cpp, or custom REST endpoints), with automatic conversation persistence, thinking inspection via **Ctrl + T**, and built-in tool calling.
+> [!CAUTION]
+Everything here IS FUCKING VIBE-CODED. Don't expect privacy, Antigravity literally found my keys and I had to recycle them.
+
+This is literally just a slim version of Antigravity, but coded using Antigravity. Thanks, Google.
 
 ---
 
