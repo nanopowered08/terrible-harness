@@ -1,5 +1,7 @@
 # Terrible Harness (formerly AskGPT, i still refer this project as AskGPT anyways)
 
+<img src="docs/images/banner.png" width="350">
+
 > [!CAUTION]
 This project is heavily vibe-coded. Certainly don't let Antigravity near config.json next time.
 This is just a simpler version of Antigravity, provided as-is. (with bugs) If the model acts up, it's Gemini's problem.
