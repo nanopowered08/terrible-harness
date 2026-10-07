@@ -17,7 +17,7 @@ Anthropic, for Claude finding bugs in it and helping as much as it can.
 Anthropic again, for resetting my usage before all of this happened.
 OpenAI, for ChatGPT giving the original idea.
 OpenAI again, for not asking me to start a new chat when my image usage ran out.
-OpenAI, for GPT-OSS and me being able to turn it into a tsundere (https://vt.tiktok.com/ZSbVQ1W3q/)
+OpenAI, for GPT-OSS and me being able to turn it into a [tsundere](https://vt.tiktok.com/ZSbVQ1W3q/)
 High-Flyer, for DeepSeek.
 High-Flyer again, for DeepSeek's original `askgpt.sh` draft.
 
