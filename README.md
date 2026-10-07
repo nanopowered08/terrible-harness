@@ -1,17 +1,18 @@
-# Terrible Harness (formerly AskGPT, i still refer this project as AskGPT anyways)
+# Terrible Harness? (It's still terrible since it's AI that coded it. Formerly AskGPT, i still refer this project as AskGPT anyways)
 
 <p align="center">
   <img src="docs/images/banner.png" alt="terrible-harness" width="720">
 </p>
 
 > [!CAUTION]
-This project is heavily vibe-coded. Certainly don't let Antigravity near config.json next time.
-This is just a simpler version of Antigravity, provided as-is. (with bugs) If the model acts up, it's Gemini's problem.
+Note to self: don't let Antigravity near the keys. This project is vibe-coded fully with Antigravity, and provided as-is, meaning you will encounter bugs I would probably fix soon but not if life gets in the way.
 
 ## So what the fuck is this?
 
-Well it's supposed to be a upgraded version of my original shell script, `askgpt.sh`, alongside coding, tooling, whatever.
-Turns out I ran out of my starter quota so we'll see if I push updates sooner.
+So it turned from small to big because I wanted an upgrade to the original Bash script, `askgpt.sh`. This now includes:
+- Code caused by `/grill-me` in Antigravity
+- Tool call fixes
+- Whatever
 
 ## Thanks to..
 
@@ -28,10 +29,13 @@ Turns out I ran out of my starter quota so we'll see if I push updates sooner.
 ## How do I even use this!?
 
 It's a CLI, idiot.
+Build it first
 
-### Build it.
+#### BUT HOW DO I BUILD IT!?
 
-Just do...
+Not that you should know, but you can always run `npm run`.
+
+Eitherway I'm obligated to tell you how, so:
 
 ```bash
 npm i
@@ -39,22 +43,26 @@ npm run build
 npm link
 ```
 
-### Then run it.
+#### HOW DO I RUN IT THEN?
 
-You already know what to do.
-Just `askgpt`. (pun intended)
+If you already ran `npm link`, then just `askgpt`. (pun intended)
 
-### YOU DIDNT SPECIFY HOW I SHOULD RUN IT LIKE!!
+#### BUT YOU- YOU DIDN'T TELL ME THE ARGUMENTS TO IT!
 
-Figure it out on your own. If you want to read Antigravity's README.md its at commit 7986f1be.
+It doesn't need any.
+If you're considering reading the original AI version of this README.md, go to the first commit with 7986f1be.
 
-Or you can use --help aswell.
-There's a bug here which I won't fix: you don't type in the model name itself.
+#### There are some bugs? Really?
 
-You type in (model company)/(model)
-For example:
- - openai/gpt-oss-120b
- - qwen/qwen3.8-27b
+Yes there are.
+
+#### What are they?
+
+Let's see in this box:
+- The model spends all of it's tool calls in some cases. Why? Because it can. It wants to burn through your credits.
+- You have to SPECIFY the model. For example, if you're using Groq, you have to use this format: (company name, eg openai)/(model name, eg gpt-oss-120b)
+
+#### Anything else to say?
 
 "I- I didn't do this because I- I wanted to!! I- I d- did this just b- because you asked!!" -Gemini (3.8 Flash, High Thinking, Antigravity)
 
