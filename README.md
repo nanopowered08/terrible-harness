@@ -60,5 +60,5 @@ MIT. Read more at LICENSE.
 ### So why tf did you open source this repo in the first place?
 
 Long story short...
-<img src="docs/images/question.jpg">
-<img src="docs/images/proof.png">
+<img src="docs/images/question.jpg" width="350">
+<img src="docs/images/proof.jpg" width="350">
