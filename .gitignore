@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.env
+config.json
+.context.json
+.reasoning.json
+test_sandbox/
+*.log

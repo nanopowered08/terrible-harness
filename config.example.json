@@ -1,0 +1,21 @@
+{
+  "provider": "groq",
+  "model": "llama-3.3-70b-versatile",
+  "apiKey": "YOUR_GROQ_API_KEY",
+  "thinking": {
+    "defaultVisible": false
+  },
+  "custom": {
+    "url": "http://127.0.0.1:8080/completion",
+    "method": "POST",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "payloadTemplate": {
+      "prompt": "{{prompt}}",
+      "temperature": 0.7,
+      "max_tokens": 2048
+    },
+    "responsePath": "content"
+  }
+}
