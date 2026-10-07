@@ -5,10 +5,16 @@
 # This is a Terrible Harness, not going to lie (Formerly AskGPT. I still refer to it as AskGPT.)
 First,
 
+## Patch Notes!
+- 1.0.1: Added image support and pinned down versions so it's less likely to break, contributed by Claude
+- 1.0.0: My starter quota got massacred by Antigravity.
+
 > [!NOTE]
 This is fully open sourced with the MIT license or more permissive. By using this repository, you acknowledge that this is provided as is, with no warranty expressed or implied, including but not limited to the warranties of merchantability,
 fitness for a specific purpose and no infringement. In no event should I be liable for any claims, damages or other liabilities whether in an action of contract tort or otherwise arising from
 out of or in connection with this, or the use, or other dealing in this.
+Actual note to self: don't let anybody near config.json.
+This project may have remnants of my API key. To be honest, I actually already cycled the keys and ran the project through git repo-filter.
 
 Next,
 
@@ -17,8 +23,6 @@ This is an experimental project that expects the dependencies of this era. I'm n
 Expect everything, if not anything, to break.
 The reason?
 This was vibe-coded fully using Antigravity.
-Actual note to self: don't let anybody near config.json.
-This project may have remnants of my API key. To be honest, I actually already cycled the keys and ran the project through git repo-filter.
 
 ## Good. Now what do I do with this?
 
