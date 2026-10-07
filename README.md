@@ -1,125 +1,54 @@
 # askgpt
 
 > [!CAUTION]
-Everything here IS FUCKING VIBE-CODED. Don't expect privacy, Antigravity literally found my keys and I had to recycle them.
+This project is heavily vibe-coded. Certainly don't let Antigravity near config.json next time.
+This is just a simpler version of Antigravity, provided as-is. (with bugs) If the model acts up, it's Gemini's problem.
 
-This is literally just a slim version of Antigravity, but coded using Antigravity. Thanks, Google.
+## So what the fuck is this?
 
----
+Well it's supposed to be a upgraded version of my original shell script, `askgpt.sh`, alongside coding, tooling, whatever.
+Turns out I ran out of my starter quota so we'll see if I push updates sooner.
 
-## Features
+## Thanks to..
 
-- 💬 **Interactive REPL**: Launch without arguments (`askgpt`) for a full interactive chat terminal.
-- ⚡ **One-Shot & Stdin Piping**: Run quick queries like `askgpt "Explain closures in JS"` or pipe files into it: `cat server.log | askgpt "Find the crash reason"`.
-- 💾 **Automatic Context (`.context.json`)**: Conversations are saved as standard message arrays in `.context.json` across sessions.
-- 🧠 **Dynamic Thinking & Reasoning (`Ctrl + T`)**:
-  - Thinking traces are piped to `.reasoning.json` in the background by default.
-  - Press **Ctrl + T** at any time to reveal and stream the full reasoning process live.
-  - Also captures native reasoning blocks and inline `<think>...</think>` tags (e.g. DeepSeek R1).
-- ⚙️ **System Prompt (`.system.txt`)**: Reads instructions from `.system.txt` in the current working directory if present.
-- 🛠️ **Tool Calling**: Built-in system tools:
-  - `execute_command`: Run shell commands with confirmation prompts.
-  - `read_file`: Read file contents.
-  - `write_file`: Write or append files.
-  - `search_web`: Fast live DuckDuckGo web search (and Groq web search integration).
-  - Dynamically load custom tools from `./tools/`.
-- 🔌 **Any Provider & Custom API**:
-  - Out of the box support for **Groq**, **OpenAI**, **Anthropic**, and **Ollama**.
-  - Custom REST API mode with configurable JSON request templates (`{{prompt}}`, `{{messages}}`, `{{system}}`) and JSON response path extraction.
-- 🪄 **Interactive Setup Wizard**: Automatically guides you to configure your provider and API key on the first run.
+Google, for Gemini.
+Google again, for Antigravity.
+Anthropic, for Claude finding bugs in it and helping as much as it can.
+Anthropic again, for resetting my usage before all of this happened.
+OpenAI, for ChatGPT giving the original idea.
+OpenAI again, for not asking me to start a new chat when my image usage ran out.
+OpenAI, for GPT-OSS and me being able to turn it into a tsundere (https://vt.tiktok.com/ZSbVQ1W3q/)
+High-Flyer, for DeepSeek.
+High-Flyer again, for DeepSeek's original `askgpt.sh` draft.
 
----
+## How do I even use this!?
 
-## Installation & Setup
+It's a CLI, idiot.
+
+### Build it.
+
+Just do...
 
 ```bash
-# In the askgpt project directory:
+npm i
 npm run build
 npm link
 ```
 
-Now `askgpt` is accessible globally from any directory in your terminal!
+### Then run it.
 
----
+You already know what to do.
+Just `askgpt`. (pun intended)
 
-## Configuration (`config.json`)
+### YOU DIDNT SPECIFY HOW I SHOULD RUN IT LIKE!!
 
-On first launch, if no configuration is found, an interactive wizard prompts you to choose your provider. You can also create `config.json` manually or set environment variables (`GROQ_API_KEY`, `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`).
+Figure it out on your own. If you want to read Antigravity's README.md.
+It's at commit 7986f1be50385eae5a4c823768e615bdb4454454.
+Or you can use --help aswell.
+There's a bug here which I won't fix: you don't type in the model name itself.
+You type in (model company)/(model)
+For example:
+ - openai/gpt-oss-120b
+ - qwen/qwen3.8-27b
 
-### Example `config.json`:
-```json
-{
-  "provider": "groq",
-  "model": "llama-3.3-70b-versatile",
-  "apiKey": "gsk_...",
-  "thinking": {
-    "defaultVisible": false
-  }
-}
-```
-
-### Custom REST Endpoint Example:
-```json
-{
-  "provider": "custom",
-  "model": "my-local-llm",
-  "custom": {
-    "url": "http://127.0.0.1:8080/completion",
-    "method": "POST",
-    "headers": {
-      "Content-Type": "application/json"
-    },
-    "payloadTemplate": {
-      "prompt": "{{prompt}}",
-      "temperature": 0.7
-    },
-    "responsePath": "content"
-  }
-}
-```
-
----
-
-## Usage
-
-### 1. Interactive Chat REPL
-```bash
-askgpt
-```
-In-chat slash commands:
-- `/clear`: Clear conversation history in `.context.json`
-- `/system`: View/reload `.system.txt`
-- `/think`: Toggle thinking visibility (or press `Ctrl+T`)
-- `/reasoning`: View last reasoning output from `.reasoning.json`
-- `/tools`: View loaded tools
-- `/model`: View current provider and model
-- `/help`: Show command help
-- `/exit`: Quit
-
-### 2. One-Shot Prompts
-```bash
-askgpt "What is the fastest sorting algorithm in practice?"
-```
-
-### 3. Piping Stdin
-```bash
-cat package.json | askgpt "Analyze the dependencies in this file"
-git diff | askgpt "Generate a git commit message for these changes"
-```
-
-### 4. CLI Flags
-- `--stateless`: Run without reading or updating `.context.json`.
-- `--think`: Show reasoning tokens immediately.
-- `--yolo`: Automatically approve tool executions without confirmation prompts.
-- `-p, --provider <name>`: Override provider (`groq`, `openai`, `anthropic`, `ollama`, `custom`).
-- `-m, --model <name>`: Override model.
-- `--clear`: Clear `.context.json` and exit.
-
----
-
-## Testing
-
-Run the test suite:
-```bash
-npx tsx test/test-core.ts
-```
+"I- I didn't do this because I- I wanted to!! I- I d- did this just b- because you asked!!" -Gemini
