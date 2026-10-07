@@ -52,3 +52,13 @@ For example:
  - qwen/qwen3.8-27b
 
 "I- I didn't do this because I- I wanted to!! I- I d- did this just b- because you asked!!" -Gemini
+
+### License
+
+MIT. Read more at LICENSE.
+
+### So why tf did you open source this repo in the first place?
+
+Long story short...
+<img src="docs/images/question.jpg">
+<img src="docs/images/proof.png">
