@@ -1,4 +1,4 @@
-# askgpt
+# Terrible Harness (formerly AskGPT, i still refer this project as AskGPT anyways)
 
 > [!CAUTION]
 This project is heavily vibe-coded. Certainly don't let Antigravity near config.json next time.
