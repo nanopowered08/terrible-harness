@@ -1,28 +1,33 @@
-import { Command } from "commander";
-import chalk from "chalk";
-import { loadConfig, runConfigWizard } from "./config.js";
-import { loadContext, saveContext, clearContext, loadSystemPrompt } from "./context.js";
-import { ReasoningManager } from "./reasoning.js";
-import { streamChatResponse } from "./providers/ai-sdk.js";
-import { executeCustomApi } from "./providers/custom.js";
-import { startRepl } from "./repl.js";
-import { AskGptConfig, ChatMessage, ProviderType } from "./types.js";
+import { Command } from "commander"; import chalk from "chalk";           import { loadConfig, runConfigWizard } from "./config.js";                import { loadContext, saveContext, clearContext, loadSystemPrompt } from "./context.js";                       import { ReasoningManager } from "./reasoning.js";                        import { streamChatResponse } from "./providers/ai-sdk.js";               import { executeCustomApi } from "./providers/custom.js";                 import { startRepl } from "./repl.js";                                    import { AskGptConfig, ChatMessage, ProviderType } from "./types.js";     
+async function readStdin(): Promise<Buffer> {
+  if (process.stdin.isTTY) return Buffer.alloc(0);
+  const chunks: Buffer[] = [];
+  try {
+    for await (const c of process.stdin) chunks.push(c as Buffer);
+  } catch {}
+  return Buffer.concat(chunks);
+}
 
-async function readStdin(): Promise<string> {
-  if (process.stdin.isTTY) return "";
-  return new Promise((resolve) => {
-    let data = "";
-    process.stdin.setEncoding("utf-8");
-    process.stdin.on("data", (chunk) => {
-      data += chunk;
-    });
-    process.stdin.on("end", () => {
-      resolve(data.trim());
-    });
-    process.stdin.on("error", () => {
-      resolve("");
-    });
-  });
+function sniffImage(b: Buffer): string | null {
+  const s = (a: number, e: number) => b.subarray(a, e).toString("latin1");
+  if (b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff) return "image/jpeg";
+  if (s(1, 4) === "PNG") return "image/png";
+  if (s(0, 3) === "GIF") return "image/gif";
+  if (s(0, 4) === "RIFF" && s(8, 12) === "WEBP") return "image/webp";
+  return null;
+}
+
+// Accepts raw image bytes OR base64 text of an image
+function extractImage(b: Buffer): { data: Buffer; mediaType: string } | null {
+  let mt = sniffImage(b);
+  if (mt) return { data: b, mediaType: mt };
+  const head = b.subarray(0, 200).toString("utf8");
+  if (/^[A-Za-z0-9+/=\s]+$/.test(head)) {
+    const decoded = Buffer.from(b.toString("utf8").trim(), "base64");
+    mt = sniffImage(decoded);
+    if (mt) return { data: decoded, mediaType: mt };
+  }
+  return null;
 }
 
 async function main() {
@@ -84,7 +89,10 @@ async function main() {
   }
 
   // Read stdin if piped
-  const stdinContent = await readStdin();
+  const stdinBuf = await readStdin();
+  const image = extractImage(stdinBuf);
+  console.error("image:", image?.mediaType, image?.data.length);
+  const stdinContent = image ? "" : stdinBuf.toString("utf8").trim();
 
   let finalPrompt = "";
   if (stdinContent && promptArgs.length > 0) {
@@ -93,6 +101,8 @@ async function main() {
     finalPrompt = stdinContent;
   } else if (promptArgs.length > 0) {
     finalPrompt = promptArgs.join(" ");
+  } else if (image) {
+    finalPrompt = "Describe this image.";
   }
 
   // If no prompt and no piped input, start interactive REPL
@@ -106,11 +116,26 @@ async function main() {
   const context: ChatMessage[] = isStateless ? [] : loadContext();
   const systemPrompt = loadSystemPrompt();
 
-  context.push({ role: "user", content: finalPrompt });
-  if (!isStateless) {
-    saveContext(context);
-  }
+  context.push({
+    role: "user",
+    content: image
+      ? `${finalPrompt}\n[image attached: ${image.mediaType}, ${image.data.length} bytes]`
+      : finalPrompt,
+  });
+  if (!isStateless) saveContext(context);
 
+  const callMessages: any[] = image
+    ? [
+        ...context.slice(0, -1),
+        {
+          role: "user",
+          content: [
+            { type: "text", text: finalPrompt },
+            { type: "image", image: image.data, mediaType: image.mediaType },
+          ],
+        },
+      ]
+    : context;
   const thinkingVisible = Boolean(options.think || config.thinking?.defaultVisible);
   const reasoningManager = new ReasoningManager(thinkingVisible, config.model);
 
@@ -129,7 +154,7 @@ async function main() {
     } else {
       assistantText = await streamChatResponse({
         config,
-        messages: context,
+        messages: callMessages,   // was: context
         systemPrompt,
         reasoningManager,
         enableTools: true,
