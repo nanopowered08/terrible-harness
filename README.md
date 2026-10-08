@@ -103,6 +103,7 @@ Well,
 
 - You can launch the REPL without arguments.
 - You can use it to read wtf you want (for example, `cat dist/index.js | askgpt "What this do"` provided you ran it from inside the AskGPT repo)
+- It also can read images (if you're using a vision model like qwen/qwen3.8-27b) for example, `cat docs/images/proof.jpg | askgpt "Is the sender and the recipient delusional"`
 - Context?? (saved in .context.json)
 - Reasoning apparently. (saved in .reasoning.json, to show it press Ctrl+T)
 - Prebuilt tools like execute_command, read_file, write_file, search_web loaded from tools/
