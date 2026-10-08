@@ -3,15 +3,18 @@ import path from "path";
 import os from "os";
 import chalk from "chalk";
 import dotenv from "dotenv";
-import { select, input, password } from "@inquirer/prompts";
-import { AskGptConfig, ProviderType } from "./types.js";
+import { select, input, password } from "@inquirer/prompts";                                        import { AskGptConfig, ProviderType } from "./types.js";
 
-// Load .env if present
-dotenv.config();
-
-export const CONFIG_FILE = "config.json";
-export const GLOBAL_CONFIG_DIR = path.join(os.homedir(), ".askgpt");
+// Load .env: current folder first, then the global one (dotenv never overrides, so first wins)     export const CONFIG_FILE = "config.json";
+export const GLOBAL_CONFIG_DIR =
+  process.env.TERRIBLE_HARNESS_HOME ?? path.join(os.homedir(), ".terrible-harness");
 export const GLOBAL_CONFIG_FILE = path.join(GLOBAL_CONFIG_DIR, "config.json");
+const GLOBAL_ENV_FILE = path.join(GLOBAL_CONFIG_DIR, ".env");
+const LEGACY_CONFIG_FILE = path.join(os.homedir(), ".askgpt", "config.json");
+
+dotenv.config({ quiet: true })
+dotenv.config();
+dotenv.config({ path: GLOBAL_ENV_FILE });
 
 export const DEFAULT_MODELS: Record<ProviderType, string> = {
   groq: "llama-3.3-70b-versatile",
@@ -27,10 +30,8 @@ export function findConfigFile(customPath?: string): string | null {
     if (fs.existsSync(resolved)) return resolved;
   }
   const local = path.resolve(process.cwd(), CONFIG_FILE);
-  if (fs.existsSync(local)) return local;
-
   if (fs.existsSync(GLOBAL_CONFIG_FILE)) return GLOBAL_CONFIG_FILE;
-
+  if (fs.existsSync(LEGACY_CONFIG_FILE)) return LEGACY_CONFIG_FILE;
   return null;
 }
 
@@ -86,11 +87,12 @@ export function loadConfig(customPath?: string): AskGptConfig | null {
   }
 }
 
-export function saveConfig(config: AskGptConfig, destination: string = CONFIG_FILE): void {
+export function saveConfig(config: AskGptConfig, destination: string = GLOBAL_CONFIG_FILE): void {
   try {
     const fullPath = path.resolve(process.cwd(), destination);
-    fs.writeFileSync(fullPath, JSON.stringify(config, null, 2), "utf-8");
-    console.log(chalk.green(`Configuration saved to ${destination}`));
+    fs.mkdirSync(path.dirname(fullPath), { recursive: true });
+    fs.writeFileSync(fullPath, JSON.stringify(config, null, 2), { encoding: "utf-8", mode: 0o600 });
+    console.log(chalk.green(`Configuration saved to ${fullPath}`));
   } catch (err: any) {
     console.error(chalk.red(`Could not save config to ${destination}: ${err.message}`));
   }
@@ -199,6 +201,6 @@ export async function runConfigWizard(): Promise<AskGptConfig> {
     custom: customConfig
   };
 
-  saveConfig(newConfig, CONFIG_FILE);
+  saveConfig(newConfig); // goes to the global dir now
   return newConfig;
 }
