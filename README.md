@@ -51,55 +51,22 @@ cd terrible-harness
 
 Eitherway it resolves to the same repo just in a different folder.
 
-Follow the steps for your specific OS.
+Install Node on your OS, im pretty sure for Windows its `winget install OpenJS.NodeJS.LTS`, for MacOS its `brew install node@24` and on Debian-based repositories its `apt install nodejs npm -y`
 
-#### On Windows, you'd do:
+### So how do I even build it?
 
-Install Node.js first.
-Then,
-
-```bat
-
-npm i
-npm run dev
-REM or alternatively, node dist/index.js
-
-```
-
-#### Or on MacOS (with Brew):
-
-```zsh
-
-brew install node@24
-npm i
-npm run dev # or alternatively, node dist/index.js
-
-```
-
-#### And on Linux:
-
-```bash
-
-apt update
-apt install nodejs-lts npm
+Well basically you just have to run this.
+```any shell
 npm i
 npm run build
 npm link
-askgpt
-
 ```
-This works on Termux, so it should work on Debian-based systems.
 
-Why do that only but for Linux it's longer?
-Because they actually get the full CLI unlike yall who rely on Windows to do what
-Scrolling on Tiktok?
-I only rely on it for VS2012, lmao
+..and thats about it!
 
 ### But what about running it?
 
 Since you ran the commands above, the AskGPT Wizard should have shown up. Just fill in your info and you can start!
-Except.
-This is a bug (config.json reliant, you now have to rely on .env)
 
 ### It's modes?
 
