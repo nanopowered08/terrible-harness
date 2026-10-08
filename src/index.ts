@@ -7,7 +7,7 @@ async function readStdin(): Promise<Buffer> {
   } catch {}
   return Buffer.concat(chunks);
 }
-
+(globalThis as any).AI_SDK_LOG_WARNINGS = false;
 function sniffImage(b: Buffer): string | null {
   const s = (a: number, e: number) => b.subarray(a, e).toString("latin1");
   if (b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff) return "image/jpeg";
