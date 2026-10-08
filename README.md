@@ -5,6 +5,8 @@
 # This is a Terrible Harness, not going to lie (Formerly AskGPT. I still refer to it as AskGPT.)
 First,
 
+This is a slim version of the REPL part making up Antigravity. This isn't meant to replace Antigravity, nor replace any other IDEs.
+
 ## Patch Notes!
 - 1.0.1: Added image support and pinned down versions so it's less likely to break, contributed by Claude
 - 1.0.0: My starter quota got massacred by Antigravity.
@@ -55,7 +57,7 @@ Follow the steps for your specific OS.
 Install Node.js first.
 Then,
 
-```cmd.exe
+```bat
 
 npm i
 npm run dev
@@ -75,7 +77,7 @@ npm run dev # or alternatively, node dist/index.js
 
 #### And on Linux:
 
-```bash with ubuntu or similar because it tested working on Termux aka my phone
+```bash
 
 apt update
 apt install nodejs-lts npm
@@ -85,15 +87,16 @@ npm link
 askgpt
 
 ```
+This works on Termux, so it should work on Debian-based systems.
 
 Why do that only but for Linux it's longer?
 Because they actually get the full CLI unlike yall who rely on Windows to do what
 Scrolling on Tiktok?
 I only rely on it for VS2012, lmao
 
-### But what ahout running it?
+### But what about running it?
 
-Since you ran the above, the AskGPT Wizard should have shown up. Just fill in your info and you can start!
+Since you ran the commands above, the AskGPT Wizard should have shown up. Just fill in your info and you can start!
 Except.
 This is a bug (config.json reliant, you now have to rely on .env)
 
