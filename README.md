@@ -8,6 +8,7 @@ First,
 This is a slim version of the REPL part making up Antigravity. This isn't meant to replace Antigravity, nor replace any other IDEs.
 
 ## Patch Notes!
+- 1.0.2: Version bump, fixed bug
 - 1.0.1: Added image support and pinned down versions so it's less likely to break, contributed by Claude
 - 1.0.0: My starter quota got massacred by Antigravity.
 
@@ -129,7 +130,7 @@ I was bored as fuck.
 
 There is! First:
 - **You have to directly specify the model.** You don't just write it like the script expects. For Groq, you write it like (company name, eg openai)/(model name, eg gpt-oss-120b)
-- **It relies on .env or config.json or any other files to be in the same folder.** If it isn't present, expect the Setup Wizard.
+- **I think i fixed the bug for not finding config.json, BUT** i really dont wanna know if it works.
 - **It burns through all it's tool call turns unless you're smart about it's tool call capabilities.** Most models overspend tools on trying to fetch something locally rather than using the web. This is why .system.txt exists.
 
 # Acknowledgements
