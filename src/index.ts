@@ -1,10 +1,8 @@
-import { Command } from "commander"; import chalk from "chalk";           import { loadConfig, runConfigWizard } from "./config.js";                import { loadContext, saveContext, clearContext, loadSystemPrompt } from "./context.js";                       import { ReasoningManager } from "./reasoning.js";                        import { streamChatResponse } from "./providers/ai-sdk.js";               import { executeCustomApi } from "./providers/custom.js";                 import { startRepl } from "./repl.js";                                    import { AskGptConfig, ChatMessage, ProviderType } from "./types.js";     
+import { Command } from "commander"; import chalk from "chalk";           import { loadConfig, runConfigWizard } from "./config.js";                import { loadContext, saveContext, clearContext, loadSystemPrompt } from "./context.js";                       import { ReasoningManager } from "./reasoning.js";                        import { streamChatResponse } from "./providers/ai-sdk.js";               import { executeCustomApi } from "./providers/custom.js";                 import { startRepl } from "./repl.js";                                    import { AskGptConfig, ChatMessage, ProviderType } from "./types.js";
 async function readStdin(): Promise<Buffer> {
   if (process.stdin.isTTY) return Buffer.alloc(0);
   const chunks: Buffer[] = [];
-  try {
-    for await (const c of process.stdin) chunks.push(c as Buffer);
-  } catch {}
+  try {                                               for await (const c of process.stdin) chunks.push(c as Buffer);                                    } catch {}
   return Buffer.concat(chunks);
 }
 (globalThis as any).AI_SDK_LOG_WARNINGS = false;
@@ -91,7 +89,6 @@ async function main() {
   // Read stdin if piped
   const stdinBuf = await readStdin();
   const image = extractImage(stdinBuf);
-  console.error("image:", image?.mediaType, image?.data.length);
   const stdinContent = image ? "" : stdinBuf.toString("utf8").trim();
 
   let finalPrompt = "";
