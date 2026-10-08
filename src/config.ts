@@ -5,19 +5,19 @@ import chalk from "chalk";
 import dotenv from "dotenv";
 import { select, input, password } from "@inquirer/prompts";                                        import { AskGptConfig, ProviderType } from "./types.js";
 
-// Load .env: current folder first, then the global one (dotenv never overrides, so first wins)     export const CONFIG_FILE = "config.json";
+// Load .env: current folder first, then the global one (dotenv never overrides, so first wins)
+export const CONFIG_FILE = "config.json";
 export const GLOBAL_CONFIG_DIR =
   process.env.TERRIBLE_HARNESS_HOME ?? path.join(os.homedir(), ".terrible-harness");
 export const GLOBAL_CONFIG_FILE = path.join(GLOBAL_CONFIG_DIR, "config.json");
 const GLOBAL_ENV_FILE = path.join(GLOBAL_CONFIG_DIR, ".env");
 const LEGACY_CONFIG_FILE = path.join(os.homedir(), ".askgpt", "config.json");
 
-dotenv.config({ quiet: true })
-dotenv.config();
-dotenv.config({ path: GLOBAL_ENV_FILE });
+dotenv.config({ quiet: true });
+dotenv.config({ path: GLOBAL_ENV_FILE, quiet: true });
 
 export const DEFAULT_MODELS: Record<ProviderType, string> = {
-  groq: "llama-3.3-70b-versatile",
+  groq: "openai/gpt-oss-120b",
   openai: "gpt-4o",
   anthropic: "claude-3-7-sonnet-20250219",
   ollama: "llama3.2",
