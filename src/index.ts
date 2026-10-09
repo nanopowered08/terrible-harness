@@ -15,18 +15,18 @@ async function main() {
   const program = new Command();
 
   program
-    .name("askgpt")
-    .description("Terminal chat assistant connecting to any LLM API with context, thinking, and tools")
-    .version("1.0.0")
-    .argument("[prompt...]", "Prompt to ask the model (runs in one-shot mode)")
-    .option("-p, --provider <provider>", "LLM provider (groq, openai, anthropic, ollama, custom)")
-    .option("-m, --model <model>", "Model name")
-    .option("-c, --config <path>", "Path to config.json")
-    .option("--stateless", "Do not read or save conversation to .context.json")
-    .option("--think", "Show thinking process in real-time")
-    .option("--yolo", "Auto-approve all tool executions without prompting")
-    .option("--clear", "Clear conversation history in .context.json and exit")
-    .helpOption("-h, --help", "Display help information");
+    .name("terrible-harness")
+    .description("The most terrible harness you've ever seen.")
+    .version("1.7.2 (Rebrand)")
+    .argument("[prompt...]", "Ask it something. (one shot mode)")
+    .option("-p, --provider <provider>", "Ur provider. (groq, openai, anthropic, ollama, custom)")
+    .option("-m, --model <model>", "The model's name.")
+    .option("-c, --config <path>", "path to your config.json (created if doesnt exist)")
+    .option("--stateless", "Isolates the model from .context.json")
+    .option("--think", "Show what it thinks.")
+    .option("--yolo", "Let the model go hay with your tools")
+    .option("--clear", "Destroy .context.json but you know rm -rf .context.json works")
+    .helpOption("-h, --help", "This?");
 
   program.parse(process.argv);
 
@@ -36,7 +36,7 @@ async function main() {
   // Handle --clear flag
   if (options.clear) {
     clearContext();
-    console.log(chalk.green("Cleared conversation context in .context.json."));
+    console.log(chalk.green("D- Done... but you could've just rm -f .context.json!!"));
     process.exit(0);
   }
 
@@ -48,8 +48,8 @@ async function main() {
     if (process.stdin.isTTY) {
       config = await runConfigWizard();
     } else {
-      console.error(chalk.red("Error: No config.json found and required environment variables are not set."));
-      console.error(chalk.yellow("Please run 'askgpt' in an interactive terminal to configure, or set GROQ_API_KEY / OPENAI_API_KEY."));
+      console.error(chalk.red("Nah you havent created .config.json?? THERE'S NO ENVIORNMENT OVERRIDE??"));
+      console.error(chalk.yellow("Just run npx terrible-harness already or set your keys in .env :wilted_rose:"));
       process.exit(1);
     }
   }

@@ -22,6 +22,7 @@ For states, there is:
 
 Now for the actual versions.
 
+- 1.7.2 - I have to include more instructions for npm users....
 - 1.6.2 - Version bump :sob:, No spotted vulnerabilities inside the app yet.
 - 1.5.2 - Uploaded to NPM.
 - 1.4.0 - Revision of Visions (wtf): The fucking version rework :sob: (I cant use emojis in termux)
@@ -52,12 +53,17 @@ This was vibe-coded fully using Antigravity.
 
 First,
 
-#### Automated
+#### Automated (Whatever updates I push to NPM)
 
 ```any shell
 npm i terrible-harness
 ```
 Done.
+
+> [!NOTE]
+You can run all the commands that you have inside of the manual versions...
+But you have to substitute "askgpt" for "npx terrible-harness".
+Small clarification: You still get all the features the manual version has but it is WAY more annoying to type in.
 
 #### Manual (Get updates faster)
 
