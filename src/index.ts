@@ -6,27 +6,10 @@ async function readStdin(): Promise<Buffer> {
   return Buffer.concat(chunks);
 }
 (globalThis as any).AI_SDK_LOG_WARNINGS = false;
-function sniffImage(b: Buffer): string | null {
-  const s = (a: number, e: number) => b.subarray(a, e).toString("latin1");
-  if (b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff) return "image/jpeg";
-  if (s(1, 4) === "PNG") return "image/png";
-  if (s(0, 3) === "GIF") return "image/gif";
-  if (s(0, 4) === "RIFF" && s(8, 12) === "WEBP") return "image/webp";
-  return null;
-}
 
-// Accepts raw image bytes OR base64 text of an image
-function extractImage(b: Buffer): { data: Buffer; mediaType: string } | null {
-  let mt = sniffImage(b);
-  if (mt) return { data: b, mediaType: mt };
-  const head = b.subarray(0, 200).toString("utf8");
-  if (/^[A-Za-z0-9+/=\s]+$/.test(head)) {
-    const decoded = Buffer.from(b.toString("utf8").trim(), "base64");
-    mt = sniffImage(decoded);
-    if (mt) return { data: decoded, mediaType: mt };
-  }
-  return null;
-}
+// staging: REPL images
+
+import { extractImage, parseAttachments, buildUserMessage } from "./attachments.js";
 
 async function main() {
   const program = new Command();
@@ -113,26 +96,18 @@ async function main() {
   const context: ChatMessage[] = isStateless ? [] : loadContext();
   const systemPrompt = loadSystemPrompt();
 
-  context.push({
-    role: "user",
-    content: image
-      ? `${finalPrompt}\n[image attached: ${image.mediaType}, ${image.data.length} bytes]`
-      : finalPrompt,
-  });
+  const att = parseAttachments(finalPrompt);
+  const images = [...att.images, ...(image ? [{ ...image, name: "stdin" }] : [])];
+  const msg = buildUserMessage(att.text, images);
+
+  context.push({ role: "user", content: msg.stored });
   if (!isStateless) saveContext(context);
 
-  const callMessages: any[] = image
-    ? [
-        ...context.slice(0, -1),
-        {
-          role: "user",
-          content: [
-            { type: "text", text: finalPrompt },
-            { type: "image", image: image.data, mediaType: image.mediaType },
-          ],
-        },
-      ]
-    : context;
+  const callMessages: any[] =
+    typeof msg.content === "string"
+      ? context
+      : [...context.slice(0, -1), { role: "user", content: msg.content }];
+
   const thinkingVisible = Boolean(options.think || config.thinking?.defaultVisible);
   const reasoningManager = new ReasoningManager(thinkingVisible, config.model);
 
