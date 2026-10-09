@@ -8,7 +8,7 @@ First,
 This is a slim version of the REPL part making up Antigravity. This isn't meant to replace Antigravity, nor replace any other IDEs.
 
 ## Patch Notes!
-- 1.0.3: Added /image=(image) and /file=(file) support, but tbh its too much work when you can cat tax_papers.jpg | askgpt "What do i fill in"
+- 1.0.3-test: Added /image=(image) and /file=(file) support, but tbh its too much work when you can cat tax_papers.jpg | askgpt "What do i fill in"
 - 1.0.2: Version bump, fixed bug
 - 1.0.1: Added image support and pinned down versions so it's less likely to break, contributed by Claude
 - 1.0.0: My starter quota got massacred by Antigravity.
