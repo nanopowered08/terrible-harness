@@ -1,6 +1,6 @@
 {
-  "name": "askgpt",
-  "version": "1.0.3-test",
+  "name": "terrible-harness",
+  "version": "1.6.2",
   "description": "The most terrible harness (Antigravity and) I ever made.",
   "main": "dist/index.js",
   "type": "module",

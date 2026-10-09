@@ -8,15 +8,33 @@ First,
 This is a slim version of the REPL part making up Antigravity. This isn't meant to replace Antigravity, nor replace any other IDEs.
 
 ## Patch Notes!
-- 1.0.3-test: Added /image=(image) and /file=(file) support, but tbh its too much work when you can cat tax_papers.jpg | askgpt "What do i fill in"
-- 1.0.2: Version bump, fixed bug
-- 1.0.1: Added image support and pinned down versions so it's less likely to break, contributed by Claude
-- 1.0.0: My starter quota got massacred by Antigravity.
+
+Edit: I was bored so I then added names to the version tags.
+
+Read the versions like: (major).(minor).(state).
+
+For states, there is:
+
+- 0: Release.
+- 1: Staging.
+- 2: Publicly available on npm (but ACTUALLY it shouldnt exist)
+- 3: Testing.
+
+Now for the actual versions.
+
+- 1.6.2 - Version bump :sob:, No spotted vulnerabilities inside the app yet.
+- 1.5.2 - Uploaded to NPM.
+- 1.4.0 - Revision of Visions (wtf): The fucking version rework :sob: (I cant use emojis in termux)
+- 1.3.1 - QOL Part 2: Added /image=(image) and /file=(file) support, but tbh its too much work when you can cat tax_papers.jpg | askgpt "What do i fill in"
+- 1.2.3 - QOL Part 1: Version bump, fixed bug
+- 1.1.0 - Claude's First Contribution: Added image support and pinned down versions so it's less likely to break, contributed by Claude
+- 1.0.0 - Initial Release: My starter quota got massacred by Antigravity.
 
 > [!NOTE]
 This is fully open sourced with the MIT license or more permissive. By using this repository, you acknowledge that this is provided as is, with no warranty expressed or implied, including but not limited to the warranties of merchantability,
 fitness for a specific purpose and no infringement. In no event should I be liable for any claims, damages or other liabilities whether in an action of contract tort or otherwise arising from
 out of or in connection with this, or the use, or other dealing in this.
+
 Actual note to self: don't let anybody near config.json.
 This project may have remnants of my API key. To be honest, I actually already cycled the keys and ran the project through git repo-filter.
 
@@ -33,6 +51,15 @@ This was vibe-coded fully using Antigravity.
 ### Install it, obviously!
 
 First,
+
+#### Automated
+
+```any shell
+npm i terrible-harness
+```
+Done.
+
+#### Manual (Get updates faster)
 
 ```any shell
 
@@ -52,7 +79,11 @@ cd terrible-harness
 
 Eitherway it resolves to the same repo just in a different folder.
 
+You need atleast Node 20, I tested this on Node 24.
+
 Install Node on your OS, im pretty sure for Windows its `winget install OpenJS.NodeJS.LTS`, for MacOS its `brew install node@24` and on Debian-based repositories its `apt install nodejs npm -y`
+
+For Termux users, `pkg update && pkg i -y nodejs-lts npm`
 
 ### So how do I even build it?
 
@@ -61,6 +92,7 @@ Well basically you just have to run this.
 npm i
 npm run build
 npm link
+askgpt
 ```
 
 ..and thats about it!
