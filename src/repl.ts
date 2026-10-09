@@ -88,7 +88,7 @@ export async function startRepl(config: AskGptConfig): Promise<void> {
       console.log(`  ${chalk.cyan("/model")}                     Show current provider and model`);
       console.log(`  ${chalk.cyan("/help")}                      Show this help message`);
       console.log(`  ${chalk.cyan("/exit")}                      Exit askgpt`);
-      console.log(`  ${chalk.cyan("/file=(path to file)")}     Import a file into the message turn`);
+      console.log(`  ${chalk.cyan("/file=(path to file)")}       Import a file into the message turn`);
       console.log(`  ${chalk.cyan("/image=(path to image)")}     Import a image into the message turn\n`);
       return true;
     }
