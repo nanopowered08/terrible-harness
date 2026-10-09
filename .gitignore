@@ -6,3 +6,4 @@ config.json
 .reasoning.json
 test_sandbox/
 *.log
+*.tgz

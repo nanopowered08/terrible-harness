@@ -14,7 +14,7 @@ export async function startRepl(config: AskGptConfig): Promise<void> {
   let thinkingVisible = config.thinking?.defaultVisible ?? false;
 
   console.log(chalk.bold.hex("#7c3aed")("\n┌───────────────────────────────────────────────┐"));
-  console.log(chalk.bold.hex("#7c3aed")("│                   askgpt                      │"));
+  console.log(chalk.bold.hex("#7c3aed")("│             terrible-harness                  │"));
   console.log(chalk.bold.hex("#7c3aed")("└───────────────────────────────────────────────┘"));
   console.log(chalk.gray(`Provider:       ${chalk.cyan(config.provider)}`));
   console.log(chalk.gray(`Model:          ${chalk.green(config.model)}`));
@@ -27,7 +27,7 @@ export async function startRepl(config: AskGptConfig): Promise<void> {
   const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout,
-    prompt: chalk.bold.blue("askgpt> ")
+    prompt: chalk.bold.blue("terrible-harness> ")
   });
 
   readline.emitKeypressEvents(process.stdin, rl);
