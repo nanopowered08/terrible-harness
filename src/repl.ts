@@ -1,3 +1,4 @@
+import { parseAttachments, buildUserMessage } from "./attachments.js";
 import readline from "readline";
 import chalk from "chalk";
 import { AskGptConfig, ChatMessage } from "./types.js";
@@ -79,14 +80,16 @@ export async function startRepl(config: AskGptConfig): Promise<void> {
     }
     if (trimmed === "/help") {
       console.log(chalk.bold("\nAvailable Commands:"));
-      console.log(`  ${chalk.cyan("/clear")}       Clear conversation history in .context.json`);
-      console.log(`  ${chalk.cyan("/system")}      Reload and display .system.txt`);
-      console.log(`  ${chalk.cyan("/think")}       Toggle thinking visibility (or press Ctrl+T)`);
-      console.log(`  ${chalk.cyan("/reasoning")}   View last reasoning trace from .reasoning.json`);
-      console.log(`  ${chalk.cyan("/tools")}       List available tools`);
-      console.log(`  ${chalk.cyan("/model")}       Show current provider and model`);
-      console.log(`  ${chalk.cyan("/help")}        Show this help message`);
-      console.log(`  ${chalk.cyan("/exit")}        Exit askgpt\n`);
+      console.log(`  ${chalk.cyan("/clear")}                     Clear conversation history in .context.json`);
+      console.log(`  ${chalk.cyan("/system")}                    Reload and display .system.txt`);
+      console.log(`  ${chalk.cyan("/think")}                     Toggle thinking visibility (or press Ctrl+T)`);
+      console.log(`  ${chalk.cyan("/reasoning")}                 View last reasoning trace from .reasoning.json`);
+      console.log(`  ${chalk.cyan("/tools")}                     List available tools`);
+      console.log(`  ${chalk.cyan("/model")}                     Show current provider and model`);
+      console.log(`  ${chalk.cyan("/help")}                      Show this help message`);
+      console.log(`  ${chalk.cyan("/exit")}                      Exit askgpt`);
+      console.log(`  ${chalk.cyan("/file=(path to file)")}     Import a file into the message turn`);
+      console.log(`  ${chalk.cyan("/image=(path to image)")}     Import a image into the message turn\n`);
       return true;
     }
     if (trimmed === "/exit" || trimmed === "/quit") {
@@ -116,8 +119,23 @@ export async function startRepl(config: AskGptConfig): Promise<void> {
     }
 
     // Add user message
-    context.push({ role: "user", content: input });
+    let msg;
+    try {
+      const att = parseAttachments(input);
+      msg = buildUserMessage(att.text || (att.images.length ? "" : input), att.images);
+    } catch (e: any) {
+      console.error(chalk.red(`${e.message}\n`));
+      askNext();
+      return;
+    }
+
+    context.push({ role: "user", content: msg.stored });
     saveContext(context);
+
+    const callMessages: any[] =
+      typeof msg.content === "string"
+        ? context
+        : [...context.slice(0, -1), { role: "user", content: msg.content }];
 
     // Setup reasoning manager
     const reasoningManager = new ReasoningManager(thinkingVisible, config.model);
@@ -169,7 +187,7 @@ export async function startRepl(config: AskGptConfig): Promise<void> {
       } else {
         assistantText = await streamChatResponse({
           config,
-          messages: context,
+          messages: callMessages,
           systemPrompt,
           reasoningManager,
           enableTools: true,
