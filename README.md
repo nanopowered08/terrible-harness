@@ -22,6 +22,7 @@ For states, there is:
 
 Now for the actual versions.
 
+- 1.7.22 - terrible-harness command now works. Sorry for the inconvenience!
 - 1.7.21 - Starting cleanup of the old name so peoe dont get confused
 - 1.7.2 - I have to include more instructions for npm users....
 - 1.6.2 - Version bump :sob:, No spotted vulnerabilities inside the app yet.
