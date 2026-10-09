@@ -42,7 +42,7 @@ This project may have remnants of my API key. To be honest, I actually already c
 Next,
 
 > [!CAUTION]
-This is an experimental project that expects the dependencies of this era. I'm not going to write a shim for it; you have to actually grab the Node 24 LTS and npm versions to use this.
+This is an experimental project that expects the dependencies of this era. I'm not going to write a shim for it; you have to actually grab the Node 20 or 24 LTS and npm versions to use this.
 Expect everything, if not anything, to break.
 The reason?
 This was vibe-coded fully using Antigravity.
