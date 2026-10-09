@@ -56,13 +56,13 @@ First,
 #### Automated (Whatever updates I push to NPM)
 
 ```any shell
-npm i terrible-harness
+npm i -g terrible-harness
 ```
 Done.
 
 > [!NOTE]
 You can run all the commands that you have inside of the manual versions...
-But you have to substitute "askgpt" for "npx terrible-harness".
+But you have to substitute "askgpt" for "terrible-harness".
 Small clarification: You still get all the features the manual version has but it is WAY more annoying to type in.
 
 #### Manual (Get updates faster)
