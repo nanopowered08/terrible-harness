@@ -99,7 +99,7 @@ export function saveConfig(config: AskGptConfig, destination: string = GLOBAL_CO
 }
 
 export async function runConfigWizard(): Promise<AskGptConfig> {
-  console.log(chalk.bold.cyan("\n Welcome to askgpt Setup Wizard!\n"));
+  console.log(chalk.bold.cyan("\n First time? Well...\n"));
   console.log(chalk.gray("No config.json found. Let's configure your LLM provider.\n"));
 
   const provider = (await select({

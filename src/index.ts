@@ -7,8 +7,6 @@ async function readStdin(): Promise<Buffer> {
 }
 (globalThis as any).AI_SDK_LOG_WARNINGS = false;
 
-// staging: REPL images
-
 import { extractImage, parseAttachments, buildUserMessage } from "./attachments.js";
 
 async function main() {
@@ -17,7 +15,7 @@ async function main() {
   program
     .name("terrible-harness")
     .description("The most terrible harness you've ever seen.")
-    .version("1.7.2 (Rebrand)")
+    .version("1.7.2.1 (Rebrand)")
     .argument("[prompt...]", "Ask it something. (one shot mode)")
     .option("-p, --provider <provider>", "Ur provider. (groq, openai, anthropic, ollama, custom)")
     .option("-m, --model <model>", "The model's name.")
