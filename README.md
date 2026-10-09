@@ -11,7 +11,7 @@ This is a slim version of the REPL part making up Antigravity. This isn't meant 
 
 Edit: I was bored so I then added names to the version tags.
 
-Read the versions like: (major).(minor).(state).
+Read the versions like: (major).(minor).(state)(patch)
 
 For states, there is:
 
@@ -22,6 +22,7 @@ For states, there is:
 
 Now for the actual versions.
 
+- 1.7.21 - Starting cleanup of the old name so peoe dont get confused
 - 1.7.2 - I have to include more instructions for npm users....
 - 1.6.2 - Version bump :sob:, No spotted vulnerabilities inside the app yet.
 - 1.5.2 - Uploaded to NPM.
