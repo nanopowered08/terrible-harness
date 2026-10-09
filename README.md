@@ -62,6 +62,7 @@ npm i -g terrible-harness
 Done.
 
 > [!NOTE]
+Edit: This is invalid, you can still run askgpt :sob:
 You can run all the commands that you have inside of the manual versions...
 But you have to substitute "askgpt" for "terrible-harness".
 Small clarification: You still get all the features the manual version has but it is WAY more annoying to type in.
