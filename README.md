@@ -2,6 +2,8 @@
   <img src="docs/images/banner.png" alt="terrible-harness" width="720">
 </p>
 
+Quick start guide is [here.](EASY_README.md)
+
 # This is a Terrible Harness, not going to lie (Formerly AskGPT. I still refer to it as AskGPT.)
 First,
 
