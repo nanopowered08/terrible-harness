@@ -7,6 +7,7 @@ import { ReasoningManager } from "./reasoning.js";
 import { streamChatResponse } from "./providers/ai-sdk.js";
 import { executeCustomApi } from "./providers/custom.js";
 import { getTools } from "./tools/index.js";
+import { createTurnGuard, createInterrupt, isAbortError } from "./Guards.js";
 
 export async function startRepl(config: AskGptConfig): Promise<void> {
   const context = loadContext();
@@ -31,6 +32,10 @@ export async function startRepl(config: AskGptConfig): Promise<void> {
   });
 
   readline.emitKeypressEvents(process.stdin, rl);
+
+  // Staged: Guards
+  const turn = createTurnGuard();
+  const interrupt = createInterrupt();
 
   const handleSlashCommand = async (cmd: string): Promise<boolean> => {
     const trimmed = cmd.trim();
@@ -103,7 +108,7 @@ export async function startRepl(config: AskGptConfig): Promise<void> {
     rl.prompt();
   };
 
-  rl.on("line", async (line) => {
+  const handleLine = async (line: string) => {
     const input = line.trim();
     if (!input) {
       askNext();
@@ -139,6 +144,7 @@ export async function startRepl(config: AskGptConfig): Promise<void> {
 
     // Setup reasoning manager
     const reasoningManager = new ReasoningManager(thinkingVisible, config.model);
+    interrupt.reset();
 
     // Pause readline while processing response
     rl.pause();
@@ -160,11 +166,7 @@ export async function startRepl(config: AskGptConfig): Promise<void> {
           }
         } else if (key && key.ctrl && key.name === "c") {
           process.stdout.write("\n" + chalk.yellow("[Interrupted by user]\n"));
-          if (process.stdin.isTTY) {
-            process.stdin.setRawMode(rawModeOriginal);
-          }
-          rl.resume();
-          askNext();
+          interrupt.abort();   // the finally block restores the terminal and prompts once
         }
       };
 
@@ -189,11 +191,12 @@ export async function startRepl(config: AskGptConfig): Promise<void> {
           config,
           messages: callMessages,
           systemPrompt,
+          abortSignal: interrupt.signal,
           reasoningManager,
           enableTools: true,
           onContentChunk: (chunk) => {
             process.stdout.write(chunk);
-          }
+          },
         });
       }
 
@@ -204,7 +207,9 @@ export async function startRepl(config: AskGptConfig): Promise<void> {
         saveContext(context);
       }
     } catch (err: any) {
-      console.error(chalk.red(`\nError: ${err.message}\n`));
+      if (!isAbortError(err)) {
+        console.error(chalk.red(`\nError: ${err.message}\n`));
+      }
     } finally {
       if (process.stdin.isTTY && onKeypressDuringStream) {
         process.stdin.removeListener("keypress", onKeypressDuringStream);
@@ -213,6 +218,10 @@ export async function startRepl(config: AskGptConfig): Promise<void> {
       rl.resume();
       askNext();
     }
+  };
+
+  rl.on("line", async (line) => {
+    await turn.run(() => handleLine(line)); // dropped while a turn is running
   });
 
   rl.on("close", () => {

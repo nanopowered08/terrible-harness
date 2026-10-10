@@ -46,10 +46,11 @@ export interface StreamResponseOptions {
   reasoningManager: ReasoningManager;
   enableTools?: boolean;
   onContentChunk?: (chunk: string) => void;
+  abortSignal?: AbortSignal;
 }
 
 export async function streamChatResponse(options: StreamResponseOptions): Promise<string> {
-  const { config, messages, systemPrompt, reasoningManager, enableTools = true, onContentChunk } = options;
+  const { config, messages, systemPrompt, reasoningManager, enableTools = true, onContentChunk, abortSignal } = options;
 
   const model = getModel(config);
   const lastUserMessage = [...messages].reverse().find((m) => m.role === "user")?.content;
@@ -81,11 +82,13 @@ export async function streamChatResponse(options: StreamResponseOptions): Promis
     system: systemPrompt || undefined,
     messages: formattedMessages,
     tools: tools,
-    stopWhen: isStepCount(10)
+    stopWhen: isStepCount(10),
+    abortSignal
   });
 
   for await (const part of stream.fullStream) {
     const partType = part.type;
+    if (abortSignal?.aborted || (partType as string) === "abort") break;
 
     if (partType === "reasoning-start") {
       hasStartedNativeReasoning = true;
@@ -128,7 +131,9 @@ export async function streamChatResponse(options: StreamResponseOptions): Promis
       const toolName = (part as any).toolName || "tool";
       console.log(chalk.gray(`[Tool ${toolName} completed]`));
     } else if (partType === "error") {
-      console.error(chalk.red(`\nStream Error: ${(part as any).error}`));
+      if (!abortSignal?.aborted) {
+        console.error(chalk.red(`\nStream Error: ${(part as any).error}`));
+      }
     }
   }
 

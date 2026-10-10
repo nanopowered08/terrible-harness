@@ -22,6 +22,7 @@ For states, there is:
 
 Now for the actual versions.
 
+- 1.8.1 - Staging patches to fix bugs
 - 1.7.22 - terrible-harness command now works. Sorry for the inconvenience!
 - 1.7.21 - Starting cleanup of the old name so peoe dont get confused
 - 1.7.2 - I have to include more instructions for npm users....
@@ -140,6 +141,8 @@ I was bored as fuck.
 There is! First:
 - **You have to directly specify the model.** You don't just write it like the script expects. For Groq, you write it like (company name, eg openai)/(model name, eg gpt-oss-120b)
 - **It burns through all it's tool call turns unless you're smart about it's tool call capabilities.** Most models overspend tools on trying to fetch something locally rather than using the web. This is why .system.txt exists.
+- **Ctrl+C still burns your API tokens.** Patches for this is basically underway.
+- **Authorization is being passed as stdin.** When you authorize something the model responds to it. Being patched.
 
 # Acknowledgements
 
