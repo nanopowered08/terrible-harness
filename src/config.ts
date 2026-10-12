@@ -19,6 +19,7 @@ dotenv.config({ path: GLOBAL_ENV_FILE, quiet: true });
 export const DEFAULT_MODELS: Record<ProviderType, string> = {
   groq: "openai/gpt-oss-120b",
   openai: "gpt-4o",
+  google: "gemini-3.5-flash-lite",
   anthropic: "claude-3-7-sonnet-20250219",
   ollama: "llama3.2",
   custom: "custom-model"
@@ -44,6 +45,13 @@ export function loadConfig(customPath?: string): AskGptConfig | null {
         provider: "groq",
         model: process.env.MODEL || DEFAULT_MODELS.groq,
         apiKey: process.env.GROQ_API_KEY
+      };
+    }
+    if (process.env.GEMINI_API_KEY) {
+      return {
+        provider: "google",
+        model: process.env.MODEL || DEFAULT_MODELS.google,
+        apiKey: process.env.GEMINI_API_KEY
       };
     }
     if (process.env.OPENAI_API_KEY) {
@@ -107,6 +115,7 @@ export async function runConfigWizard(): Promise<AskGptConfig> {
     choices: [
       { name: "Groq (Fast, supports DeepSeek R1, Llama 3.3, tool calling)", value: "groq" },
       { name: "OpenAI (GPT-4o, o3-mini)", value: "openai" },
+      { name: "Google (Literal lightning)", value: "google" },
       { name: "Anthropic (Claude 3.7 Sonnet)", value: "anthropic" },
       { name: "Ollama / llama.cpp (Local OpenAI-compatible API)", value: "ollama" },
       { name: "Custom JSON API (Custom endpoint & payload template)", value: "custom" }
@@ -156,6 +165,15 @@ export async function runConfigWizard(): Promise<AskGptConfig> {
     model = await input({
       message: "Enter model name:",
       default: DEFAULT_MODELS.ollama
+    });
+  } else if (provider === "google") {
+    apiKey = await password({
+      message: "Enter your Gemini API Key (from AI Studio):",
+      mask: "*"
+    });
+    model = await input({
+      message: "Enter model name:",
+      default: DEFAULT_MODELS.google
     });
   }
 

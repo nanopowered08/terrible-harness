@@ -1,4 +1,13 @@
-import { Command } from "commander"; import chalk from "chalk";           import { loadConfig, runConfigWizard } from "./config.js";                import { loadContext, saveContext, clearContext, loadSystemPrompt } from "./context.js";                       import { ReasoningManager } from "./reasoning.js";                        import { streamChatResponse } from "./providers/ai-sdk.js";               import { executeCustomApi } from "./providers/custom.js";                 import { startRepl } from "./repl.js";                                    import { AskGptConfig, ChatMessage, ProviderType } from "./types.js";
+import { Command } from "commander"; import chalk from "chalk";
+import { loadConfig, runConfigWizard } from "./config.js";
+import { loadContext, saveContext, clearContext, loadSystemPrompt } from "./context.js";
+import { ReasoningManager } from "./reasoning.js";
+import { streamChatResponse } from "./providers/ai-sdk.js";
+import { executeCustomApi } from "./providers/custom.js";
+import { streamGoogleChat } from "./providers/google.js";
+import { startRepl } from "./repl.js";
+import { AskGptConfig, ChatMessage, ProviderType } from "./types.js";
+
 async function readStdin(): Promise<Buffer> {
   if (process.stdin.isTTY) return Buffer.alloc(0);
   const chunks: Buffer[] = [];
@@ -121,10 +130,20 @@ async function main() {
           process.stdout.write(chunk);
         }
       );
+    } else if (config.provider === "google") {
+      assistantText = await streamGoogleChat({
+        config,
+        messages: callMessages,
+        systemPrompt,
+        reasoningManager,
+        onContentChunk: (chunk) => {
+          process.stdout.write(chunk);
+        }
+      });
     } else {
       assistantText = await streamChatResponse({
         config,
-        messages: callMessages,   // was: context
+        messages: callMessages,
         systemPrompt,
         reasoningManager,
         enableTools: true,
