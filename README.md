@@ -24,6 +24,7 @@ For states, there is:
 
 Now for the actual versions.
 
+- 2.0.0 - FINALLLY!!!! Gemini didn't hallucinate the syntax for Gen AI SDK, but apparently did when we used Vercel AI SDK? Anyways, TL;DR Gemini can officially be a tsundere.
 - 1.9.2 - Uploaded the destaged patches to NPM
 - 1.8.1 - Staging patches to fix bugs
 - 1.7.22 - terrible-harness command now works. Sorry for the inconvenience!

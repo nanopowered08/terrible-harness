@@ -9,6 +9,7 @@ import { executeCustomApi } from "./providers/custom.js";
 import { getTools } from "./tools/index.js";
 import { createTurnGuard, createInterrupt, isAbortError } from "./Guards.js";
 import { maybeSummarize, resolveSystemPrompt, GLOBAL_SYSTEM_FILE } from "./Summarize.js";
+import { streamGoogleChat } from "./providers/google.js";
 
 export async function startRepl(config: AskGptConfig): Promise<void> {
   const context = loadContext();
@@ -192,6 +193,16 @@ export async function startRepl(config: AskGptConfig): Promise<void> {
             process.stdout.write(chunk);
           }
         );
+      } else if (config.provider === "google") {
+        assistantText = await streamGoogleChat({
+          config,
+          messages: callMessages,
+          systemPrompt,
+          reasoningManager,
+          onContentChunk: (chunk) => {
+            process.stdout.write(chunk);
+          }
+        });
       } else {
         assistantText = await streamChatResponse({
           config,
