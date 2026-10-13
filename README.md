@@ -24,6 +24,7 @@ For states, there is:
 
 Now for the actual versions.
 
+- 2.1.2 - Added tool calling to Gemini, now its fully supported
 - 2.0.2 - Bump and publish to npm
 - 2.0.0 - FINALLLY!!!! Gemini didn't hallucinate the syntax for Gen AI SDK, but apparently did when we used Vercel AI SDK? Anyways, TL;DR Gemini can officially be a tsundere.
 - 1.9.2 - Uploaded the destaged patches to NPM
