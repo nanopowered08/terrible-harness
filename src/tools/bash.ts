@@ -1,6 +1,7 @@
+// src/tools/bash.ts
 import { exec } from "child_process";
 import chalk from "chalk";
-import { confirm } from "@inquirer/prompts";
+import { confirmTool, rejectionMessage } from "./confirm.js";
 
 export interface BashOptions {
   autoApprove?: boolean;
@@ -20,37 +21,25 @@ export async function executeBash(
     };
   }
 
-  if (explanation) {
-    console.log(chalk.cyan(`\n[Command Planned]: ${explanation}`));
-  }
-  console.log(chalk.yellow(`$ ${trimmed}`));
-
-  if (!options.autoApprove) {
-    if (!process.stdin.isTTY) {
-      console.log(chalk.red("Command execution denied: interactive confirmation is not available in non-interactive session. Use --yolo to allow."));
-      return {
-        stdout: "",
-        stderr: "Command execution denied: Confirmation unavailable in non-interactive session. Use --yolo to auto-approve.",
-        exitCode: 1
-      };
+  const showPlan = () => {
+    if (explanation) {
+      console.log(chalk.cyan(`[Command Planned]: ${explanation}`));
     }
+    console.log(chalk.yellow(`$ ${trimmed}`));
+  };
 
-    try {
-      const ok = await confirm({
-        message: "Authorize execution of this command?",
-        default: true
-      });
-      if (!ok) {
-        return {
-          stdout: "",
-          stderr: "Execution aborted by user.",
-          exitCode: 1
-        };
-      }
-    } catch {
+  if (options.autoApprove) {
+    console.log();
+    showPlan();
+  } else {
+    const verdict = await confirmTool({
+      question: "Run this command?",
+      preview: showPlan
+    });
+    if (!verdict.approved) {
       return {
         stdout: "",
-        stderr: "Aborted (confirmation interrupted).",
+        stderr: rejectionMessage(verdict, "command"),
         exitCode: 1
       };
     }
@@ -61,7 +50,8 @@ export async function executeBash(
       resolve({
         stdout: stdout || "",
         stderr: stderr || (err ? err.message : ""),
-        exitCode: err && typeof err.code === "number" ? err.code : 0
+        // err.code can be a string (e.g. maxBuffer exceeded), which used to read as exit 0
+        exitCode: err ? (typeof err.code === "number" ? err.code : 1) : 0
       });
     });
   });
