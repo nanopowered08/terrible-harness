@@ -58,6 +58,7 @@ MIT.
 
 # Now for the actual version patches.
 
+- 2.2.2 - AIs can see why you rejected changes.
 - 2.1.2 - Added tool support to Gemini
 - 2.0.2 - Bump and then publish to npm
 - 2.0.0 - FINALLLY!!!! Gemini didn't hallucinate the syntax for Gen AI SDK, but apparently did when we used Vercel AI SDK? Anyways, TL;DR Gemini can officially be a tsundere.
