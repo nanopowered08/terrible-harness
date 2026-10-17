@@ -24,6 +24,7 @@ For states, there is:
 
 Now for the actual versions.
 
+- 2.3.2 - Models can now open webpages. :wilted_rose:
 - 2.2.2 - Added a reason for the model to know why you rejected changes
 - 2.1.2 - Added tool calling to Gemini, now its fully supported
 - 2.0.2 - Bump and publish to npm

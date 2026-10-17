@@ -4,6 +4,7 @@ import { executeBash } from "./bash.js";
 import { readFile, writeFile } from "./files.js";
 import { searchWeb } from "./search.js";
 import { loadCustomTools } from "./loader.js";
+import { openWebpage } from "./open_webpage.js";
 
 export interface ToolRegistryOptions {
   autoApprove?: boolean;
@@ -114,6 +115,32 @@ export async function getTools(options: ToolRegistryOptions = {}): Promise<Recor
         console.log(chalk.cyan(`\n[Web Search]: ${query}`));
         const results = await searchWeb(query);
         return { query, results };
+      }
+    }),
+
+    open_webpage: tool({
+      description:
+        "Open a webpage by URL and extract its readable text. Use after search_web to read documentation, inspect sources, and verify information.",
+      inputSchema: jsonSchema({
+        type: "object",
+        properties: {
+          url: {
+            type: "string",
+            description: "The complete HTTP or HTTPS URL to open"
+          }
+        },
+        required: ["url"]
+      }),
+      execute: async (args: any) => {
+        const url = args?.url || args?.uri || args?.link;
+
+        if (typeof url !== "string" || !url.trim()) {
+          throw new Error("A valid webpage URL is required.");
+        }
+
+        console.log(chalk.cyan(`\n[Open Webpage]: ${url}`));
+
+        return await openWebpage(url);
       }
     })
   };

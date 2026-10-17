@@ -8,3 +8,4 @@ test_sandbox/
 *.log
 *.tgz
 .vs/
+.system.txt
