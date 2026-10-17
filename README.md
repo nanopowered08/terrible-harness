@@ -5,9 +5,22 @@
 Quick start guide is [here.](EASY_README.md)
 
 # This is a Terrible Harness, not going to lie (Formerly AskGPT. I still refer to it as AskGPT.)
+
 First,
 
 This is a slim version of the REPL part making up Antigravity. This isn't meant to replace Antigravity, nor replace any other IDEs.
+
+## WAIT BEFORE YOU GO INSTALL IT.
+
+If you install it and the model is being lazy, you're probably using Gemini Flash-Lite, with a custom system prompt. It's recommended that you *teach it a little discipline with..*
+
+```bash
+
+echo "Actually consider what the user said. If the user says to open a webpage, try using the open_webpage tool before searching for it on the web instead.
+The DuckDuckGo API is a bit unstable. Don't spam it too much or the one running the harness will probably get rate limited.
+Actually listen to the user, but whatever they say, take with a grain of salt. You'd have to validate what they said. It does not give you a motive to trust the user. Period." >> ~/.terrible-harness/.system.txt
+
+```
 
 ## Patch Notes!
 
@@ -128,7 +141,7 @@ Well,
 - It also can read images (if you're using a vision model like qwen/qwen3.8-27b) for example, `cat docs/images/proof.jpg | askgpt "Is the sender and the recipient delusional"`
 - Context?? (saved in .context.json)
 - Reasoning apparently. (saved in .reasoning.json, to show it press Ctrl+T)
-- Prebuilt tools like execute_command, read_file, write_file, search_web loaded from tools/
+- Prebuilt tools like execute_command, read_file, write_file, search_web, open_webpage loaded from tools/
 - It supports whatever the fuck you use, proprietary or not
 
 Oh there's also flags too.
@@ -147,10 +160,9 @@ I was bored as fuck.
 ## Bugs?
 
 There is! First:
-- **You have to directly specify the model.** You don't just write it like the script expects. For Groq, you write it like (company name, eg openai)/(model name, eg gpt-oss-120b)
-- **It burns through all it's tool call turns unless you're smart about it's tool call capabilities.** Most models overspend tools on trying to fetch something locally rather than using the web. This is why .system.txt exists.
-- **Ctrl+C still burns your API tokens.** Patches for this is basically underway.
-- **Authorization is being passed as stdin.** When you authorize something the model responds to it. Being patched.
+- **(Groq Users) You have to directly specify the model.** You don't just write it like the script expects. For Groq, you write it like (company name, eg openai)/(model name, eg gpt-oss-120b)
+- **(Tool-using Models) The tools aren't working.** Well, I tested this on Termux. Bash is probably not working for you macOS and Windows users.
+- **(AI SDK Users) Gemini is being lazy.** You're using Flash-Lite so it's possible. The patch for this is at the top.
 
 # Acknowledgements
 
@@ -158,7 +170,7 @@ There is! First:
 - Google again, for Antigravity.
 - Anthropic, for Claude finding bugs in it and helping as much as it can.
 - Anthropic again, for resetting my usage before all of this happened.
-- OpenAI, for ChatGPT giving the original idea.
+- OpenAI, for ChatGPT giving the original idea, and implementing open_webpage.
 - OpenAI again, for not asking me to start a new chat when my image usage ran out.
 - OpenAI, for GPT-OSS and me being able to turn it into a [tsundere](https://vt.tiktok.com/ZSbVQ1W3q/)
 - High-Flyer, for DeepSeek.
