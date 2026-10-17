@@ -4,6 +4,17 @@
 
 Quick start guide is [here.](EASY_README.md)
 
+# End of An Era, Boys!
+
+This project is soon to no longer be maintained. The NPM version is already deprecated, so you will only get staging patches and code contributed by anyone who will want to contribute
+
+School's starting soon.
+
+## Whats's getting updates? What's not?
+
+- The Github version will receive staging updates until I have to stop.
+- The NPM version will no longer receive updates but you can still install a stable version.
+
 # This is a Terrible Harness, not going to lie (Formerly AskGPT. I still refer to it as AskGPT.)
 
 First,

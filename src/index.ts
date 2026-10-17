@@ -21,10 +21,13 @@ import { extractImage, parseAttachments, buildUserMessage } from "./attachments.
 async function main() {
   const program = new Command();
 
+  console.log(chalk.red(`!! ${chalk.blue(`This project is deprecated.`)} !!`)); 
+  console.log(chalk.gray(`If you want to know why, go to https://github.com/nanopowered08/askgpt. `));
+
   program
     .name("terrible-harness")
     .description("The most terrible harness you've ever seen.")
-    .version("1.7.22 (Rebrand)")
+    .version("NO its deprecated")
     .argument("[prompt...]", "Ask it something. (one shot mode)")
     .option("-p, --provider <provider>", "Ur provider. (groq, openai, anthropic, ollama, custom)")
     .option("-m, --model <model>", "The model's name.")

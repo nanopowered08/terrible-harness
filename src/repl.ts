@@ -26,7 +26,7 @@ export async function startRepl(config: AskGptConfig): Promise<void> {
   const promptSource = loadSystemPrompt() ? SYSTEM_FILE : GLOBAL_SYSTEM_FILE;
   console.log(chalk.gray(`System Prompt:  ${systemPrompt ? chalk.green(`loaded from ${promptSource}`) : chalk.dim(`none (${SYSTEM_FILE})`)}`));
   console.log(chalk.gray(`Thinking:       ${thinkingVisible ? chalk.green("Visible") : chalk.yellow("Hidden (piping to " + REASONING_FILE + ")")} [Ctrl+T to toggle]`));
-  console.log(chalk.gray(`Tools:          ${chalk.cyan("execute_command, read_file, write_file, search_web")}`));
+  console.log(chalk.gray(`Tools:          ${chalk.cyan("execute_command, read_file, write_file, search_web, open_webpage")}`));
   console.log(chalk.dim("Type /help for slash commands, or type your message to chat.\n"));
 
   readline.emitKeypressEvents(process.stdin);
