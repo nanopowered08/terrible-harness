@@ -59,22 +59,6 @@ export async function openWebpage(
   // Avoid obvious local-network and local-machine targets.
   const hostname = parsedUrl.hostname.toLowerCase();
 
-  if (
-    hostname === "localhost" ||
-    hostname.endsWith(".localhost") ||
-    hostname.endsWith(".local") ||
-    hostname === "::1" ||
-    hostname === "[::1]" ||
-    /^127\./.test(hostname) ||
-    /^10\./.test(hostname) ||
-    /^192\.168\./.test(hostname) ||
-    /^169\.254\./.test(hostname) ||
-    /^172\.(1[6-9]|2\d|3[01])\./.test(hostname) ||
-    hostname === "0.0.0.0"
-  ) {
-    throw new Error("Local and private network URLs are not allowed.");
-  }
-
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 15000);
 
@@ -82,7 +66,7 @@ export async function openWebpage(
     const response = await fetch(parsedUrl, {
       headers: {
         "User-Agent":
-          "Mozilla/5.0 (compatible; AskGPT/1.0; +https://github.com/nanopowered08/terrible-harness)",
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AskGPT/1.0 (+https://github.com/nanopowered08/terrible-harness)",
         "Accept": "text/html,application/xhtml+xml,text/plain;q=0.9,*/*;q=0.8"
       },
       redirect: "follow",
