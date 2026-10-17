@@ -160,9 +160,16 @@ I was bored as fuck.
 ## Bugs?
 
 There is! First:
+
 - **(Groq Users) You have to directly specify the model.** You don't just write it like the script expects. For Groq, you write it like (company name, eg openai)/(model name, eg gpt-oss-120b)
 - **(Tool-using Models) The tools aren't working.** Well, I tested this on Termux. Bash is probably not working for you macOS and Windows users.
 - **(AI SDK Users) Gemini is being lazy.** You're using Flash-Lite so it's possible. The patch for this is at the top.
+
+## Incident Reports. (Added by yours truly, the :penguin:)
+
+- **Gemini had beef with the maintainer.** Since when did an AI start beefing with the one that's providing it a reason to be happy? Patched in 2.3.2.
+- **GPT-OSS accidentally took the Claude persona.** Not joking, nanopowered08 actually tested Claude but switched back to Groq.
+- **This project will be coming to an end soon.** nanopowered08 is about to start going back to school. Thank you guys for atleast reading till this point.
 
 # Acknowledgements
 
