@@ -12,8 +12,16 @@ Meet me at Yukanthor High School.
 
 ## Whats's getting updates? What's not?
 
-- The Github version will receive staging updates until I have to stop.
-- The NPM version will no longer receive updates but you can still install a stable version.
+Ima add a table
+
+
+| Version | Updates |
+|---------|---------|
+| Github (git clone) | Yes (git pull) |
+| NPM | Rarely (npm i again) |
+| Github (.ZIP) | No. |
+
+If I was you I'd probably git pull && npx tsup && npm link
 
 # This is a Terrible Harness, not going to lie (Formerly AskGPT. I still refer to it as AskGPT.)
 
