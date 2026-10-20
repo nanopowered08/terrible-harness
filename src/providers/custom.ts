@@ -51,6 +51,7 @@ export async function executeCustomApi(
   messages: ChatMessage[],
   systemPrompt: string | null,
   reasoningManager: ReasoningManager,
+  abortSignal?: AbortSignal,
   onContentChunk: (chunk: string) => void
 ): Promise<string> {
   const custom = config.custom;
@@ -82,7 +83,8 @@ export async function executeCustomApi(
   const res = await fetch(custom.url, {
     method: custom.method || "POST",
     headers,
-    body: JSON.stringify(payload)
+    body: JSON.stringify(payload),
+    signal: AbortSignal
   });
 
   if (!res.ok) {
