@@ -204,3 +204,11 @@ There is! First:
 - OpenAI, for GPT-OSS and me being able to turn it into a [tsundere](https://vt.tiktok.com/ZSbVQ1W3q/)
 - High-Flyer, for DeepSeek.
 - High-Flyer again, for DeepSeek's original `askgpt.sh` draft.
+
+# Appendix
+
+1. Gemini being an absolute unsolicited performer
+
+<p align="center">
+  <img src="docs/images/wtf.jpg" alt="gemini-failing-an-interview" width="360">
+</p>
