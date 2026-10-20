@@ -1,92 +1,167 @@
+
 import { parseAttachments, buildUserMessage } from "./attachments.js";
 import readline from "readline";
 import chalk from "chalk";
-import { AskGptConfig, ChatMessage } from "./types.js";
-import { loadContext, saveContext, clearContext, loadSystemPrompt, loadReasoning, CONTEXT_FILE, SYSTEM_FILE, REASONING_FILE } from "./context.js";
+import type { AskGptConfig } from "./types.js";
+import {
+  loadContext,
+  saveContext,
+  clearContext,
+  loadSystemPrompt,
+  loadReasoning,
+  CONTEXT_FILE,
+  SYSTEM_FILE,
+  REASONING_FILE
+} from "./context.js";
 import { ReasoningManager } from "./reasoning.js";
 import { streamChatResponse } from "./providers/ai-sdk.js";
 import { executeCustomApi } from "./providers/custom.js";
 import { getTools } from "./tools/index.js";
-import { createTurnGuard, createInterrupt, isAbortError } from "./Guards.js";
-import { maybeSummarize, resolveSystemPrompt, GLOBAL_SYSTEM_FILE } from "./Summarize.js";
+import { createInterrupt, isAbortError } from "./Guards.js";
+import {
+  maybeSummarize,
+  resolveSystemPrompt,
+  GLOBAL_SYSTEM_FILE
+} from "./Summarize.js";
 import { streamGoogleChat } from "./providers/google.js";
 
 export async function startRepl(config: AskGptConfig): Promise<void> {
   const context = loadContext();
+  const interrupt = createInterrupt();
+
   let preferGlobal = false;
   let systemPrompt = resolveSystemPrompt(loadSystemPrompt(), preferGlobal);
   let thinkingVisible = config.thinking?.defaultVisible ?? false;
+  let shouldExit = false;
+
+  const PROMPT = chalk.bold.blue("terrible-harness> ");
+  let history: string[] = [];
 
   console.log(chalk.bold.hex("#7c3aed")("\n┌───────────────────────────────────────────────┐"));
   console.log(chalk.bold.hex("#7c3aed")("│             terrible-harness                  │"));
   console.log(chalk.bold.hex("#7c3aed")("└───────────────────────────────────────────────┘"));
   console.log(chalk.gray(`Provider:       ${chalk.cyan(config.provider)}`));
   console.log(chalk.gray(`Model:          ${chalk.green(config.model)}`));
-  console.log(chalk.gray(`Context:        ${context.length > 0 ? chalk.yellow(`${context.length} messages loaded from ${CONTEXT_FILE}`) : chalk.dim(`empty (${CONTEXT_FILE})`)}`));
+  console.log(
+    chalk.gray(
+      `Context:        ${
+        context.length > 0
+          ? chalk.yellow(`${context.length} messages loaded from ${CONTEXT_FILE}`)
+          : chalk.dim(`empty (${CONTEXT_FILE})`)
+      }`
+    )
+  );
+
   const promptSource = loadSystemPrompt() ? SYSTEM_FILE : GLOBAL_SYSTEM_FILE;
-  console.log(chalk.gray(`System Prompt:  ${systemPrompt ? chalk.green(`loaded from ${promptSource}`) : chalk.dim(`none (${SYSTEM_FILE})`)}`));
-  console.log(chalk.gray(`Thinking:       ${thinkingVisible ? chalk.green("Visible") : chalk.yellow("Hidden (piping to " + REASONING_FILE + ")")} [Ctrl+T to toggle]`));
-  console.log(chalk.gray(`Tools:          ${chalk.cyan("execute_command, read_file, write_file, search_web, open_webpage")}`));
+  console.log(
+    chalk.gray(
+      `System Prompt:  ${
+        systemPrompt ? chalk.green(`loaded from ${promptSource}`) : chalk.dim(`none (${SYSTEM_FILE})`)
+      }`
+    )
+  );
+  console.log(
+    chalk.gray(
+      `Thinking:       ${
+        thinkingVisible
+          ? chalk.green("Visible")
+          : chalk.yellow(`Hidden (piping to ${REASONING_FILE})`)
+      } [Ctrl+T to toggle]`
+    )
+  );
+  console.log(
+    chalk.gray(
+      `Tools:          ${chalk.cyan("execute_command, read_file, write_file, search_web, open_webpage")}`
+    )
+  );
   console.log(chalk.dim("Type /help for slash commands, or type your message to chat.\n"));
 
   readline.emitKeypressEvents(process.stdin);
 
-  const interrupt = createInterrupt();
-
   const handleSlashCommand = async (cmd: string): Promise<boolean> => {
     const trimmed = cmd.trim();
+
     if (trimmed === "/clear") {
       clearContext();
       context.length = 0;
       console.log(chalk.green("Context cleared. Started fresh conversation."));
       return true;
     }
+
     if (trimmed === "/system global" || trimmed === "/system local") {
       preferGlobal = trimmed === "/system global";
       systemPrompt = resolveSystemPrompt(loadSystemPrompt(), preferGlobal);
-      console.log(chalk.green(preferGlobal
-        ? `System prompt source: ${GLOBAL_SYSTEM_FILE}`
-        : `System prompt source: local ${SYSTEM_FILE} (global as fallback)`));
+
+      console.log(
+        chalk.green(
+          preferGlobal
+            ? `System prompt source: ${GLOBAL_SYSTEM_FILE}`
+            : `System prompt source: local ${SYSTEM_FILE} (global as fallback)`
+        )
+      );
       return true;
     }
+
     if (trimmed === "/system") {
       systemPrompt = resolveSystemPrompt(loadSystemPrompt(), preferGlobal);
+
       if (systemPrompt) {
         console.log(chalk.cyan(`\nCurrent System Prompt (${SYSTEM_FILE}):\n`));
         console.log(chalk.white(systemPrompt));
       } else {
-        console.log(chalk.yellow(`No ${SYSTEM_FILE} found. Create a .system.txt file to set custom instructions.`));
+        console.log(
+          chalk.yellow(`No ${SYSTEM_FILE} found. Create a .system.txt file to set custom instructions.`)
+        );
       }
+
       return true;
     }
+
     if (trimmed === "/think") {
       thinkingVisible = !thinkingVisible;
-      console.log(chalk.magenta(`Thinking visibility is now: ${thinkingVisible ? "ON" : "OFF"}`));
+      console.log(
+        chalk.magenta(`Thinking visibility is now: ${thinkingVisible ? "ON" : "OFF"}`)
+      );
       return true;
     }
+
     if (trimmed === "/reasoning") {
       const reasoningData = loadReasoning();
-      if (reasoningData && reasoningData.reasoning) {
-        console.log(chalk.magenta(`\nLast Reasoning [${reasoningData.model} @ ${reasoningData.timestamp}]:\n`));
+
+      if (reasoningData?.reasoning) {
+        console.log(
+          chalk.magenta(
+            `\nLast Reasoning [${reasoningData.model} @ ${reasoningData.timestamp}]:\n`
+          )
+        );
         console.log(chalk.dim.italic(reasoningData.reasoning));
       } else {
         console.log(chalk.yellow("No saved reasoning found in .reasoning.json yet."));
       }
+
       return true;
     }
+
     if (trimmed === "/tools") {
-      const tools = await getTools({ autoApprove: config.autoApproveTools, provider: config.provider });
+      const tools = await getTools({
+        autoApprove: config.autoApproveTools,
+        provider: config.provider
+      });
+
       console.log(chalk.cyan("\nAvailable Tools:"));
-      for (const [name, t] of Object.entries(tools)) {
-        console.log(` - ${chalk.green(name)}: ${(t as any).description || ""}`);
+      for (const [name, tool] of Object.entries(tools)) {
+        console.log(` - ${chalk.green(name)}: ${(tool as any).description || ""}`);
       }
+
       return true;
     }
+
     if (trimmed === "/model") {
       console.log(chalk.cyan(`Current Provider: ${config.provider}`));
       console.log(chalk.green(`Current Model:    ${config.model}`));
       return true;
     }
+
     if (trimmed === "/help") {
       console.log(chalk.bold("\nAvailable Commands:"));
       console.log(`  ${chalk.cyan("/clear")}                     Clear conversation history in .context.json`);
@@ -98,51 +173,63 @@ export async function startRepl(config: AskGptConfig): Promise<void> {
       console.log(`  ${chalk.cyan("/help")}                      Show this help message`);
       console.log(`  ${chalk.cyan("/exit")}                      Exit askgpt`);
       console.log(`  ${chalk.cyan("/file=(path to file)")}       Import a file into the message turn`);
-      console.log(`  ${chalk.cyan("/image=(path to image)")}     Import a image into the message turn\n`);
+      console.log(`  ${chalk.cyan("/image=(path to image)")}     Import an image into the message turn\n`);
       console.log(`  ${chalk.cyan("/summarize")}                 Summarize the context now (auto at 75% of the window)`);
       console.log(`  ${chalk.cyan("/system global|local")}       Prefer ~/.terrible-harness/.system.txt or the local .system.txt`);
       return true;
     }
+
     if (trimmed === "/summarize") {
-      await maybeSummarize({ config, context, systemPrompt, save: saveContext, force: true });
+      await maybeSummarize({
+        config,
+        context,
+        systemPrompt,
+        save: saveContext,
+        force: true
+      });
       return true;
     }
+
     if (trimmed === "/exit" || trimmed === "/quit") {
       console.log(chalk.yellow("Goodbye!"));
-      process.exit(0);
+      shouldExit = true;
+      return true;
     }
+
     return false;
   };
 
-  const askNext = () => {};
-
-  const handleLine = async (line: string) => {
+  const handleLine = async (line: string): Promise<void> => {
     const input = line.trim();
-    if (!input) {
-      askNext();
-      return;
-    }
+
+    if (!input) return;
 
     if (input.startsWith("/")) {
       const handled = await handleSlashCommand(input);
-      if (handled) {
-        askNext();
-        return;
-      }
+      if (handled) return;
     }
 
-    // Add user message
     let msg;
+
     try {
-      const att = parseAttachments(input);
-      msg = buildUserMessage(att.text || (att.images.length ? "" : input), att.images);
-    } catch (e: any) {
-      console.error(chalk.red(`${e.message}\n`));
-      askNext();
+      const attachments = parseAttachments(input);
+      msg = buildUserMessage(
+        attachments.text || (attachments.images.length ? "" : input),
+        attachments.images
+      );
+    } catch (error: any) {
+      console.error(chalk.red(`${error.message}\n`));
       return;
     }
 
-    await maybeSummarize({ config, context, systemPrompt, pendingText: input, save: saveContext });
+    await maybeSummarize({
+      config,
+      context,
+      systemPrompt,
+      pendingText: input,
+      save: saveContext
+    });
+
     context.push({ role: "user", content: msg.stored });
     saveContext(context);
 
@@ -151,36 +238,66 @@ export async function startRepl(config: AskGptConfig): Promise<void> {
         ? context
         : [...context.slice(0, -1), { role: "user", content: msg.content }];
 
-    // Setup reasoning manager
     const reasoningManager = new ReasoningManager(thinkingVisible, config.model);
+
+    // Each generation gets its own cancellation signal.
     interrupt.reset();
+    const turnSignal = interrupt.signal;
 
+    let originalRawMode = false;
+    let rawModeChanged = false;
+    let cancelledMessageShown = false;
 
-    // Hook Ctrl+T keypress during generation
-    let rawModeOriginal = false;
-    let onKeypressDuringStream: ((str: string, key: any) => void) | null = null;
+    const cancelTurn = (): void => {
+      if (turnSignal.aborted) return;
 
-    if (process.stdin.isTTY) {
-      rawModeOriginal = Boolean(process.stdin.isRaw);
-      process.stdin.setRawMode(true);
-      process.stdin.resume();
+      process.stdout.write("\n" + chalk.yellow("[Interrupted by user]\n"));
+      cancelledMessageShown = true;
+      interrupt.abort();
+    };
 
-      onKeypressDuringStream = (_str: string, key: any) => {
-        if (key && (key.sequence === "\x14" || (key.ctrl && key.name === "t"))) {
-          if (!reasoningManager.getVisible()) {
-            thinkingVisible = true;
-            reasoningManager.setVisible(true);
-          }
-        } else if (key && key.ctrl && key.name === "c") {
-          process.stdout.write("\n" + chalk.yellow("[Interrupted by user]\n"));
-          interrupt.abort();   // the finally block restores the terminal and prompts once
-        }
-      };
+    const onKeypress = (_str: string, key: any): void => {
+      if (!key) return;
 
-      process.stdin.on("keypress", onKeypressDuringStream);
-    }
+      if (key.ctrl && key.name === "t") {
+        thinkingVisible = !reasoningManager.getVisible();
+        reasoningManager.setVisible(thinkingVisible);
+
+        process.stdout.write(
+          "\n" +
+            chalk.magenta(
+              `Thinking visibility is now: ${thinkingVisible ? "ON" : "OFF"}`
+            ) +
+            "\n"
+        );
+        return;
+      }
+
+      if (key.ctrl && key.name === "c") {
+        cancelTurn();
+      }
+    };
+
+    // Fallback for environments where Ctrl+C arrives as a process signal.
+    const onProcessSigint = (): void => {
+      cancelTurn();
+    };
 
     try {
+      if (process.stdin.isTTY) {
+        originalRawMode = Boolean(process.stdin.isRaw);
+
+        if (!originalRawMode) {
+          process.stdin.setRawMode(true);
+          rawModeChanged = true;
+        }
+
+        process.stdin.resume();
+        process.stdin.on("keypress", onKeypress);
+      }
+
+      process.on("SIGINT", onProcessSigint);
+
       let assistantText = "";
 
       if (config.provider === "custom") {
@@ -190,8 +307,9 @@ export async function startRepl(config: AskGptConfig): Promise<void> {
           systemPrompt,
           reasoningManager,
           (chunk) => {
-            process.stdout.write(chunk);
-          }
+            if (!turnSignal.aborted) process.stdout.write(chunk);
+          },
+          turnSignal
         );
       } else if (config.provider === "google") {
         assistantText = await streamGoogleChat({
@@ -199,8 +317,9 @@ export async function startRepl(config: AskGptConfig): Promise<void> {
           messages: callMessages,
           systemPrompt,
           reasoningManager,
+          abortSignal: turnSignal,
           onContentChunk: (chunk) => {
-            process.stdout.write(chunk);
+            if (!turnSignal.aborted) process.stdout.write(chunk);
           }
         });
       } else {
@@ -208,54 +327,87 @@ export async function startRepl(config: AskGptConfig): Promise<void> {
           config,
           messages: callMessages,
           systemPrompt,
-          abortSignal: interrupt.signal,
+          abortSignal: turnSignal,
           reasoningManager,
           enableTools: true,
           onContentChunk: (chunk) => {
-            process.stdout.write(chunk);
-          },
+            if (!turnSignal.aborted) process.stdout.write(chunk);
+          }
         });
       }
 
-      process.stdout.write("\n\n");
+      if (turnSignal.aborted) {
+        // A provider may resolve with partial output after cancellation.
+        // Do not save that partial output as a completed assistant turn.
+        if (!cancelledMessageShown) {
+          process.stdout.write(chalk.yellow("[Generation cancelled]\n"));
+        }
+      } else {
+        process.stdout.write("\n\n");
 
-      if (assistantText.trim()) {
-        context.push({ role: "assistant", content: assistantText });
-        saveContext(context);
+        if (assistantText.trim()) {
+          context.push({ role: "assistant", content: assistantText });
+          saveContext(context);
+        }
       }
-    } catch (err: any) {
-      if (!isAbortError(err)) {
-        console.error(chalk.red(`\nError: ${err.message}\n`));
+    } catch (error: any) {
+      if (turnSignal.aborted || isAbortError(error)) {
+        if (!cancelledMessageShown) {
+          process.stdout.write(chalk.yellow("\n[Generation cancelled]\n"));
+        }
+      } else {
+        console.error(chalk.red(`\nError: ${error?.message ?? String(error)}\n`));
       }
     } finally {
-      if (process.stdin.isTTY && onKeypressDuringStream) {
-        process.stdin.removeListener("keypress", onKeypressDuringStream);
-        process.stdin.setRawMode(rawModeOriginal);
+      process.removeListener("SIGINT", onProcessSigint);
+
+      if (process.stdin.isTTY) {
+        process.stdin.removeListener("keypress", onKeypress);
+
+        if (rawModeChanged) {
+          process.stdin.setRawMode(originalRawMode);
+        }
       }
-      askNext();
     }
   };
 
-  const PROMPT = chalk.bold.blue("terrible-harness> ");
-  let history: string[] = [];
-
-  while (true) {
+  // Prompt input and generation input are handled in separate phases:
+  // readline is closed before a turn begins, so it cannot compete with
+  // the generation-time keypress handler.
+  while (!shouldExit) {
     const rl = readline.createInterface({
       input: process.stdin,
       output: process.stdout,
       history,
       historySize: 100
     });
+
     const line = await new Promise<string | null>((resolve) => {
-      rl.once("close", () => resolve(null)); // Ctrl+C / Ctrl+D at the prompt
-      rl.question(PROMPT, (answer) => resolve(answer));
+      let settled = false;
+
+      const finish = (value: string | null): void => {
+        if (settled) return;
+        settled = true;
+        resolve(value);
+      };
+
+      rl.once("close", () => finish(null));
+      rl.question(PROMPT, (answer) => finish(answer));
     });
-    history = (rl as any).history ?? history; // keep up-arrow history
+
+    history = (rl as any).history ?? history;
     rl.close();
+
     if (line === null) {
       console.log(chalk.yellow("\nSession closed."));
-      process.exit(0);
+      break;
     }
-    await handleLine(line);
+
+    try {
+      await handleLine(line);
+    } catch (error: any) {
+      console.error(chalk.red(`\nError: ${error?.message ?? String(error)}\n`));
+    }
   }
 }
+
