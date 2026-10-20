@@ -1,3 +1,4 @@
+import chalk from "chalk";
 import { getTools } from "../tools/index.js";
 import { GoogleGenAI } from "@google/genai";
 import { AskGptConfig, ChatMessage } from "../types.js";
@@ -123,19 +124,25 @@ export async function streamGoogleChat({
 
     const responses: any[] = [];
     for (const call of calls) {
+      console.log(chalk.cyan(`\n[Calling tool ${call.name}]...`));
+
       let result: any;
       try {
         result = await (tools as any)[call.name].execute(call.args, {
           toolCallId: call.id ?? call.name,
           messages: [],
         });
+        console.log(chalk.gray(`[Tool ${call.name} completed]`));
       } catch (e: any) {
-        result = { error: e.message };
+        result = { error: e instanceof Error ? e.message : String(e) };
+        console.log(chalk.red(`[Tool ${call.name} failed]`));
       }
+
       responses.push({
         functionResponse: { name: call.name, response: { result } },
       });
     }
+
     contents.push({ role: "user", parts: responses });
   }
 

@@ -1,5 +1,6 @@
+import { generateAiComment } from "./ai-comment.js";
 import { Command } from "commander"; import chalk from "chalk";
-import { loadConfig, runConfigWizard } from "./config.js";
+import { loadConfig, saveConfig, runConfigWizard } from "./config.js";
 import { loadContext, saveContext, clearContext, loadSystemPrompt } from "./context.js";
 import { ReasoningManager } from "./reasoning.js";
 import { streamChatResponse } from "./providers/ai-sdk.js";
@@ -36,6 +37,10 @@ async function main() {
     .option("--think", "Show what it thinks.")
     .option("--yolo", "Let the model go hay with your tools")
     .option("--clear", "Destroy .context.json but you know rm -rf .context.json works")
+    .option(
+      "--ai-comment <enabled>",
+      "Enable or disable AI flag commentary (true/false)"
+    )
     .helpOption("-h, --help", "This?");
 
   program.parse(process.argv);
@@ -43,12 +48,57 @@ async function main() {
   const options = program.opts();
   const promptArgs = program.args;
 
-  // Handle --clear flag
+  // Second patch contributed by ChatGPT
+
+  // Handle --clear before normal config setup.
+  // Commentary must NEVER prevent the operation from completing.
   if (options.clear) {
-    clearContext();
-    console.log(chalk.green("D- Done... but you could've just rm -f .context.json!!"));
-    process.exit(0);
+    let status = 0;
+
+    try {
+      clearContext();
+      console.log(
+        chalk.green("D- Done... but you could've just rm -f .context.json!!")
+      );
+    } catch (err) {
+      status = 1;
+      console.error(chalk.red("Failed to clear context:"), err);
+    }
+
+    try {
+      // Load config opportunistically. Never launch the setup wizard here.
+      const config = loadConfig(options.config);
+
+      // An explicit setting takes precedence and is persisted when possible.
+      if (options.aiComment !== undefined && config) {
+        config.aiComment = options.aiComment === "true";
+        saveConfig(config);
+      }
+
+      if (options.aiComment === "true" || config?.aiComment) {
+        const systemPrompt =
+          loadSystemPrompt() || "You are a helpful assistant.";
+
+        const comment = await generateAiComment(
+          config,
+          systemPrompt,
+          "--clear",
+          "--clear",
+          status
+        );
+
+        console.error(chalk.magenta(`💬 ${comment}`));
+      }
+    } catch {
+      // Commentary is optional. Never change the command's exit status.
+      console.error(
+        chalk.magenta("💬 The commentator vanished into the void. 💀")
+      );
+    }
+
+    process.exit(status);
   }
+
 
   // Load configuration
   let config = loadConfig(options.config);
@@ -62,6 +112,12 @@ async function main() {
       console.error(chalk.yellow("Just run npx terrible-harness already or set your keys in .env :wilted_rose:"));
       process.exit(1);
     }
+  }
+
+  // By ChatGPT: Persist AI commentary setting when set to true
+  if (options.aiComment !== undefined && config) {
+    config.aiComment = options.aiComment === "true";
+    saveConfig(config);
   }
 
   // Apply CLI overrides

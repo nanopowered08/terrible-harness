@@ -1,4 +1,4 @@
-export type ProviderType = "groq" | "openai" | "anthropic" | "ollama" | "custom";
+export type ProviderType = "groq" | "openai" | "anthropic" | "ollama" | "google" | "custom";
 
 export interface CustomApiConfig {
   url: string;
@@ -7,6 +7,7 @@ export interface CustomApiConfig {
   payloadTemplate: Record<string, any>;
   responsePath?: string;
   reasoningPath?: string;
+  aiComment?: boolean;
 }
 
 export interface AskGptConfig {
