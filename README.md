@@ -48,6 +48,7 @@ For states, there is:
 
 Now for the actual versions.
 
+- 2.5.2 - FINAL FINAL npm release. Added better REPL support (ChatGPT)
 - 2.4.2 - Final NPM release
 - 2.3.2 - Models can now open webpages. :wilted_rose:
 - 2.2.2 - Added a reason for the model to know why you rejected changes
@@ -181,6 +182,8 @@ There is! First:
 
 - **Gemini had beef with the maintainer.** Since when did an AI start beefing with the one that's providing it a reason to be happy? Patched in 2.3.2.
 - **GPT-OSS accidentally took the Claude persona.** Not joking, nanopowered08 actually tested Claude but switched back to Groq.
+- **This project will be coming to an end soon.** nanopowered08 is about to start going back to school. Thank you guys for atleast reading till this point.
+- **Eek!?** Why TF IS GEMINI AUDITIONING FOR A NSFW AUDIOBOOK!?
 
 # Acknowledgements
 
