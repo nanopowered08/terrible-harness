@@ -56,6 +56,7 @@ For states, there is:
 
 Now for the actual versions.
 
+- 2.6.0 - The Commentatorz I CANNOT HANDLE: --ai-comment now exists so the model can give commentary. Known issues already documented.
 - 2.5.2 - FINAL FINAL npm release. Added better REPL support (ChatGPT)
 - 2.4.2 - Final NPM release
 - 2.3.2 - Models can now open webpages. :wilted_rose:
@@ -185,6 +186,13 @@ There is! First:
 - **(Groq Users) You have to directly specify the model.** You don't just write it like the script expects. For Groq, you write it like (company name, eg openai)/(model name, eg gpt-oss-120b)
 - **(Tool-using Models) The tools aren't working.** Well, I tested this on Termux. Bash is probably not working for you macOS and Windows users.
 - **(AI SDK Users) Gemini is being lazy.** You're using Flash-Lite so it's possible. The patch for this is at the top.
+
+#### Bugs, BUT AS FEATURES?
+
+There is! Here:
+
+- **ai-comment uses the existing system prompt.** Great for Tiktoks where-
+- **I pushed a update to NPM.** 2.5.2, but it is the final update.
 
 ## Incident Reports. (Added by yours truly, the :penguin:)
 
