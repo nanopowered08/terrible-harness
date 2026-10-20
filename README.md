@@ -8,7 +8,7 @@ Quick start guide is [here.](EASY_README.md)
 
 This project is soon to no longer be maintained. The NPM version is already deprecated, so you will only get staging patches and code contributed by anyone who will want to contribute
 
-School's starting soon.
+Meet me at Yukanthor High School.
 
 ## Whats's getting updates? What's not?
 
@@ -181,7 +181,6 @@ There is! First:
 
 - **Gemini had beef with the maintainer.** Since when did an AI start beefing with the one that's providing it a reason to be happy? Patched in 2.3.2.
 - **GPT-OSS accidentally took the Claude persona.** Not joking, nanopowered08 actually tested Claude but switched back to Groq.
-- **This project will be coming to an end soon.** nanopowered08 is about to start going back to school. Thank you guys for atleast reading till this point.
 
 # Acknowledgements
 
