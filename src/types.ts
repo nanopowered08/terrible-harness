@@ -7,7 +7,6 @@ export interface CustomApiConfig {
   payloadTemplate: Record<string, any>;
   responsePath?: string;
   reasoningPath?: string;
-  aiComment?: boolean;
 }
 
 export interface AskGptConfig {
@@ -21,6 +20,7 @@ export interface AskGptConfig {
   };
   custom?: CustomApiConfig;
   autoApproveTools?: boolean;
+  aiComment?: boolean;
 }
 
 export interface ChatMessage {
