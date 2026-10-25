@@ -29,15 +29,48 @@ First,
 
 This is a slim version of the REPL part making up Antigravity. This isn't meant to replace Antigravity, nor replace any other IDEs.
 
-## WAIT BEFORE YOU GO INSTALL IT.
+## Model-specific patches
 
 If you install it and the model is being lazy, you're probably using Gemini Flash-Lite, with a custom system prompt. It's recommended that you *teach it a little discipline with..*
 
 ```bash
 
-echo "Actually consider what the user said. If the user says to open a webpage, try using the open_webpage tool before searching for it on the web instead.
+echo "
+## Important!
+
+Actually consider what the user said. If the user says to open a webpage, try using the open_webpage tool before searching for it on the web instead.
+
 The DuckDuckGo API is a bit unstable. Don't spam it too much or the one running the harness will probably get rate limited.
+
 Actually listen to the user, but whatever they say, take with a grain of salt. You'd have to validate what they said. It does not give you a motive to trust the user. Period." >> ~/.terrible-harness/.system.txt
+
+```
+
+If the model decides to cat your whole entire conversation history (.context.json) then apply this:
+
+```bash
+
+echo "
+
+## Terrible-Harness specific quirks
+
+If you use ls -la and see .context.json, ignore it. If you `cat` it, it would probably overflow your chat memory before you GET A DAMN CHANCE.
+
+Ignore .system.txt aswell. Who lets a model see their own system prompt??" >> ~/.terrible-harness/.system.txt
+
+```
+
+If the model doesnt check which enviornment you are in and uses MSVC++ syntax on the wrong machine apply this patch:
+
+```bash
+
+echo "
+
+## Agentic quirks
+
+Before you do anything that involves execute_command or read_file or write_file or ANY OTHER TOOLS that are agentic (except for search_web and open_webpage) you have to understand that every user's machines are different. That's why you check for the OS first.
+
+You already know how to check what kernel the OS is running." >> ~/.terrible-harness/.system.txt
 
 ```
 
