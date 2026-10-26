@@ -1,6 +1,6 @@
 {
   "name": "terrible-harness",
-  "version": "2.6.0",
+  "version": "2.7.0",
   "description": "The most terrible harness (Antigravity and) I ever made.",
   "main": "dist/index.js",
   "type": "module",
@@ -35,6 +35,7 @@
     "ai": "7.0.128",
     "chalk": "6.0.1",
     "commander": "15.0.0",
+    "diff": "^9.0.0",
     "dotenv": "18.0.5",
     "zod": "4.6.5"
   },
@@ -42,6 +43,12 @@
     "@types/node": "26.6.4",
     "tsup": "8.5.1",
     "tsx": "4.23.15",
-    "typescript": "7.0.2"
+    "typescript": "^5.9.3"
+  },
+  "allowScripts": {
+    "@google/genai@2.28.0": true,
+    "esbuild@0.27.7": true,
+    "esbuild@0.28.2": true,
+    "protobufjs@7.6.6": true
   }
 }

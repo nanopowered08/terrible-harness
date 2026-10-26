@@ -1,4 +1,3 @@
-
 import { parseAttachments, buildUserMessage } from "./attachments.js";
 import readline from "readline";
 import chalk from "chalk";
@@ -315,7 +314,7 @@ export async function startRepl(config: AskGptConfig): Promise<void> {
         assistantText = await streamGoogleChat({
           config,
           messages: callMessages,
-          systemPrompt,
+          systemPrompt: systemPrompt ?? undefined,
           reasoningManager,
           abortSignal: turnSignal,
           onContentChunk: (chunk) => {

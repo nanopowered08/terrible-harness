@@ -7,7 +7,7 @@ export function parseCli() {
   program
     .name("terrible-harness/askgpt")
     .description("The most terrible harness Antigravity made after the ML-Template incident")
-    .version("2.9.0 - Apparently its still getting updates while deprecated LMFAOO")
+    .version("2.7.0 - Apparently its still getting updates while deprecated LMFAOO")
     .argument("[prompt...]", "Ask it something. (one shot mode)")
     .option("-p, --provider <provider>", "Ur provider. (groq, openai, anthropic, ollama, custom)")
     .option("-m, --model <model>", "The model's name.")

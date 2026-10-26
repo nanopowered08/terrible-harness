@@ -1,4 +1,3 @@
-
 import {
   parseAttachments,
   buildUserMessage,
@@ -72,7 +71,7 @@ export async function executeOneShot(
     assistantText = await streamGoogleChat({
       config,
       messages: callMessages,
-      systemPrompt,
+      systemPrompt: systemPrompt ?? undefined,
       reasoningManager,
       onContentChunk: (chunk) => process.stdout.write(chunk),
     });
