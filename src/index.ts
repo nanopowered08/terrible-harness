@@ -1,3 +1,5 @@
+import chalk from "chalk";
+import { parseCli } from "./cli.js";
 import {
   clearContext,
   loadSystemPrompt,
@@ -5,9 +7,7 @@ import {
 import { executeOneShot } from "./execution/one-shot.js";
 import { resolveInput } from "./execution/input.js";
 import { generateAiComment } from "./ai-comment.js";
-import { Command } from "commander"; import chalk from "chalk";
 import { startRepl } from "./repl.js";
-import { AskGptConfig, ChatMessage } from "./types.js";
 import { initializeConfig } from "./execution/configuration.js";
 import { loadConfig, saveConfig } from "./config.js";
 
@@ -15,35 +15,12 @@ import { loadConfig, saveConfig } from "./config.js";
 
 
 async function main() {
-  const program = new Command();
 
-  console.log(chalk.red(`!! ${chalk.blue(`This project is deprecated.`)} !!`)); 
-  console.log(chalk.gray(`If you want to know why, go to https://github.com/nanopowered08/askgpt. `));
+  // Deprecation notice
+  console.log(chalk.red(`!! `), chalk.blue(`This project is deprecated`), chalk.red(` !!`));
+  console.log(chalk.gray(`Learn why at https://github.com/nanopowered08/askgpt. `));
 
-  program
-    .name("terrible-harness")
-    .description("The most terrible harness you've ever seen.")
-    .version("NO its deprecated")
-    .argument("[prompt...]", "Ask it something. (one shot mode)")
-    .option("-p, --provider <provider>", "Ur provider. (groq, openai, anthropic, ollama, custom)")
-    .option("-m, --model <model>", "The model's name.")
-    .option("-c, --config <path>", "path to your config.json (created if doesnt exist)")
-    .option("--stateless", "Isolates the model from .context.json")
-    .option("--think", "Show what it thinks.")
-    .option("--yolo", "Let the model go hay with your tools")
-    .option("--clear", "Destroy .context.json but you know rm -rf .context.json works")
-    .option(
-      "--ai-comment <enabled>",
-      "Enable or disable AI flag commentary (true/false)"
-    )
-    .helpOption("-h, --help", "This?");
-
-  program.parse(process.argv);
-
-  const options = program.opts();
-  const promptArgs = program.args;
-
-  // Second patch contributed by ChatGPT
+  const { options, promptArgs } = parseCli();
 
   // Handle --clear before normal config setup.
   // Commentary must NEVER prevent the operation from completing.
