@@ -1,23 +1,18 @@
+import {
+  clearContext,
+  loadSystemPrompt,
+} from "./context.js";
+import { executeOneShot } from "./execution/one-shot.js";
+import { resolveInput } from "./execution/input.js";
 import { generateAiComment } from "./ai-comment.js";
 import { Command } from "commander"; import chalk from "chalk";
-import { loadConfig, saveConfig, runConfigWizard } from "./config.js";
-import { loadContext, saveContext, clearContext, loadSystemPrompt } from "./context.js";
-import { ReasoningManager } from "./reasoning.js";
-import { streamChatResponse } from "./providers/ai-sdk.js";
-import { executeCustomApi } from "./providers/custom.js";
-import { streamGoogleChat } from "./providers/google.js";
 import { startRepl } from "./repl.js";
-import { AskGptConfig, ChatMessage, ProviderType } from "./types.js";
+import { AskGptConfig, ChatMessage } from "./types.js";
+import { initializeConfig } from "./execution/configuration.js";
+import { loadConfig, saveConfig } from "./config.js";
 
-async function readStdin(): Promise<Buffer> {
-  if (process.stdin.isTTY) return Buffer.alloc(0);
-  const chunks: Buffer[] = [];
-  try {                                               for await (const c of process.stdin) chunks.push(c as Buffer);                                    } catch {}
-  return Buffer.concat(chunks);
-}
 (globalThis as any).AI_SDK_LOG_WARNINGS = false;
 
-import { extractImage, parseAttachments, buildUserMessage } from "./attachments.js";
 
 async function main() {
   const program = new Command();
@@ -77,7 +72,7 @@ async function main() {
 
       if (options.aiComment === "true" || config?.aiComment) {
         const systemPrompt =
-          loadSystemPrompt() || "You are a helpful assistant.";
+          loadSystemPrompt() || "You are an assistant whose only sole purpose is to generate a comment for a flag the user executed";
 
         const comment = await generateAiComment(
           config,
@@ -101,55 +96,10 @@ async function main() {
 
 
   // Load configuration
-  let config = loadConfig(options.config);
-
-  // If no config found and in interactive terminal, run setup wizard
-  if (!config) {
-    if (process.stdin.isTTY) {
-      config = await runConfigWizard();
-    } else {
-      console.error(chalk.red("Nah you havent created .config.json?? THERE'S NO ENVIORNMENT OVERRIDE??"));
-      console.error(chalk.yellow("Just run npx terrible-harness already or set your keys in .env :wilted_rose:"));
-      process.exit(1);
-    }
-  }
-
-  // By ChatGPT: Persist AI commentary setting when set to true
-  if (options.aiComment !== undefined && config) {
-    config.aiComment = options.aiComment === "true";
-    saveConfig(config);
-  }
-
-  // Apply CLI overrides
-  if (options.provider) {
-    config.provider = options.provider as ProviderType;
-  }
-  if (options.model) {
-    config.model = options.model;
-  }
-  if (options.yolo) {
-    config.autoApproveTools = true;
-  }
-  if (options.think) {
-    if (!config.thinking) config.thinking = {};
-    config.thinking.defaultVisible = true;
-  }
+  const config = await initializeConfig(options);
 
   // Read stdin if piped
-  const stdinBuf = await readStdin();
-  const image = extractImage(stdinBuf);
-  const stdinContent = image ? "" : stdinBuf.toString("utf8").trim();
-
-  let finalPrompt = "";
-  if (stdinContent && promptArgs.length > 0) {
-    finalPrompt = `${promptArgs.join(" ")}\n\n[Piped Input]:\n${stdinContent}`;
-  } else if (stdinContent) {
-    finalPrompt = stdinContent;
-  } else if (promptArgs.length > 0) {
-    finalPrompt = promptArgs.join(" ");
-  } else if (image) {
-    finalPrompt = "Describe this image.";
-  }
+  const { image, finalPrompt } = await resolveInput(promptArgs);
 
   // If no prompt and no piped input, start interactive REPL
   if (!finalPrompt) {
@@ -157,67 +107,18 @@ async function main() {
     return;
   }
 
+
   // One-shot execution
   const isStateless = Boolean(options.stateless);
-  const context: ChatMessage[] = isStateless ? [] : loadContext();
-  const systemPrompt = loadSystemPrompt();
-
-  const att = parseAttachments(finalPrompt);
-  const images = [...att.images, ...(image ? [{ ...image, name: "stdin" }] : [])];
-  const msg = buildUserMessage(att.text, images);
-
-  context.push({ role: "user", content: msg.stored });
-  if (!isStateless) saveContext(context);
-
-  const callMessages: any[] =
-    typeof msg.content === "string"
-      ? context
-      : [...context.slice(0, -1), { role: "user", content: msg.content }];
-
-  const thinkingVisible = Boolean(options.think || config.thinking?.defaultVisible);
-  const reasoningManager = new ReasoningManager(thinkingVisible, config.model);
+  const input = { image, finalPrompt };
 
   try {
-    let assistantText = "";
-    if (config.provider === "custom") {
-      assistantText = await executeCustomApi(
-        config,
-        context,
-        systemPrompt,
-        reasoningManager,
-        (chunk) => {
-          process.stdout.write(chunk);
-        }
-      );
-    } else if (config.provider === "google") {
-      assistantText = await streamGoogleChat({
-        config,
-        messages: callMessages,
-        systemPrompt,
-        reasoningManager,
-        onContentChunk: (chunk) => {
-          process.stdout.write(chunk);
-        }
-      });
-    } else {
-      assistantText = await streamChatResponse({
-        config,
-        messages: callMessages,
-        systemPrompt,
-        reasoningManager,
-        enableTools: true,
-        onContentChunk: (chunk) => {
-          process.stdout.write(chunk);
-        }
-      });
-    }
-
-    process.stdout.write("\n");
-
-    if (!isStateless && assistantText.trim()) {
-      context.push({ role: "assistant", content: assistantText });
-      saveContext(context);
-    }
+    await executeOneShot(
+      config,
+      input,
+      isStateless,
+      Boolean(options.think),
+    );
   } catch (err: any) {
     console.error(chalk.red(`\nError: ${err.message}`));
     process.exit(1);
