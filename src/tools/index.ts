@@ -151,8 +151,11 @@ export async function getTools(options: ToolRegistryOptions = {}): Promise<Recor
     if (custom.parameters && typeof custom.parameters === "object") {
       tools[custom.name] = tool({
         description: custom.description,
-        parameters: custom.parameters,
-        execute: custom.execute
+        inputSchema: jsonSchema<Record<string, unknown>>(
+          custom.parameters
+        ),
+        execute: async (args: Record<string, unknown>) =>
+          custom.execute(args)
       });
     }
   }

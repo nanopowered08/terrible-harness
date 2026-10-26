@@ -89,6 +89,7 @@ For states, there is:
 
 Now for the actual versions.
 
+- 2.7.0 - WHAT THE ACTUAL FUCK - index.ts got DEBLOATED to the bone :sob:
 - 2.6.0 - The Commentatorz I CANNOT HANDLE: --ai-comment now exists so the model can give commentary. Known issues already documented.
 - 2.5.2 - FINAL FINAL npm release. Added better REPL support (ChatGPT)
 - 2.4.2 - Final NPM release

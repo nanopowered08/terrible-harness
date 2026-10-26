@@ -93,7 +93,7 @@ export async function streamChatResponse(options: StreamResponseOptions): Promis
     if (partType === "reasoning-start") {
       hasStartedNativeReasoning = true;
       reasoningManager.startThinking();
-    } else if (partType === "reasoning" || partType === "reasoning-delta") {
+    } else if (partType === "reasoning-delta") {
       if (!hasStartedNativeReasoning) {
         hasStartedNativeReasoning = true;
         reasoningManager.startThinking();
