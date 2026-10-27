@@ -22,7 +22,6 @@ import {
   resolveSystemPrompt,
   GLOBAL_SYSTEM_FILE
 } from "./Summarize.js";
-import { streamGoogleChat } from "./providers/google.js";
 
 export async function startRepl(config: AskGptConfig): Promise<void> {
   const context = loadContext();
@@ -310,17 +309,6 @@ export async function startRepl(config: AskGptConfig): Promise<void> {
           },
           turnSignal
         );
-      } else if (config.provider === "google") {
-        assistantText = await streamGoogleChat({
-          config,
-          messages: callMessages,
-          systemPrompt: systemPrompt ?? undefined,
-          reasoningManager,
-          abortSignal: turnSignal,
-          onContentChunk: (chunk) => {
-            if (!turnSignal.aborted) process.stdout.write(chunk);
-          }
-        });
       } else {
         assistantText = await streamChatResponse({
           config,

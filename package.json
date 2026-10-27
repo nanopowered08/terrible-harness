@@ -28,9 +28,9 @@
   "license": "MIT",
   "dependencies": {
     "@ai-sdk/anthropic": "4.0.72",
+    "@ai-sdk/google": "^4.0.106",
     "@ai-sdk/groq": "4.0.55",
     "@ai-sdk/openai": "4.0.84",
-    "@google/genai": "2.28.0",
     "@inquirer/prompts": "8.7.3",
     "ai": "7.0.128",
     "chalk": "6.0.1",
