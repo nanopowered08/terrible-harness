@@ -10,7 +10,6 @@ import {
 import { ReasoningManager } from "../reasoning.js";
 import { streamChatResponse } from "../providers/ai-sdk.js";
 import { executeCustomApi } from "../providers/custom.js";
-import { streamGoogleChat } from "../providers/google.js";
 import type { AskGptConfig, ChatMessage } from "../types.js";
 import type { resolveInput } from "./input.js";
 
@@ -67,14 +66,6 @@ export async function executeOneShot(
       reasoningManager,
       (chunk) => process.stdout.write(chunk),
     );
-  } else if (config.provider === "google") {
-    assistantText = await streamGoogleChat({
-      config,
-      messages: callMessages,
-      systemPrompt: systemPrompt ?? undefined,
-      reasoningManager,
-      onContentChunk: (chunk) => process.stdout.write(chunk),
-    });
   } else {
     assistantText = await streamChatResponse({
       config,

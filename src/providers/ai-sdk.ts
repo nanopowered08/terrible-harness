@@ -1,7 +1,9 @@
+import { createGoogleGenerativeAI } from "@ai-sdk/google";
+import { createLoopDetectionCondition } from "../loop-detection.js";
 import { createOpenAI } from "@ai-sdk/openai";
 import { createAnthropic } from "@ai-sdk/anthropic";
 import { createGroq } from "@ai-sdk/groq";
-import { streamText, isStepCount } from "ai";
+import { streamText, isLoopFinished } from "ai";
 import { AskGptConfig, ChatMessage } from "../types.js";
 import { ReasoningManager, InlineThinkFilter } from "../reasoning.js";
 import { getTools } from "../tools/index.js";
@@ -9,6 +11,16 @@ import chalk from "chalk";
 
 export function getModel(config: AskGptConfig): any {
   switch (config.provider) {
+    case "google": {
+      const google = createGoogleGenerativeAI({
+        apiKey:
+          config.apiKey ||
+          process.env.GEMINI_API_KEY ||
+          process.env.GOOGLE_GENERATIVE_AI_API_KEY,
+      });
+
+      return google(config.model || "gemini-3.5-flash-lite");
+    }
     case "groq": {
       const groq = createGroq({
         apiKey: config.apiKey || process.env.GROQ_API_KEY
@@ -81,9 +93,9 @@ export async function streamChatResponse(options: StreamResponseOptions): Promis
     model,
     system: systemPrompt || undefined,
     messages: formattedMessages,
-    tools: tools,
-    stopWhen: isStepCount(10),
-    abortSignal
+    tools,
+    abortSignal,
+    stopWhen: createLoopDetectionCondition()
   });
 
   for await (const part of stream.fullStream) {
