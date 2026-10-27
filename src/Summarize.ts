@@ -17,6 +17,7 @@
  * Import style: "./StagedSummarize.js" (ESM/tsup), same as your other imports.
  */
 
+import { fileURLToPath } from "node:url";
 import fs from "fs";
 import os from "os";
 import path from "path";
@@ -28,6 +29,11 @@ import { AskGptConfig, ChatMessage } from "./types.js";
 // ---------------------------------------------------------------------------
 // Context window + token estimate
 // ---------------------------------------------------------------------------
+
+export const CONSTITUTION_FILE = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "../docs/harness-constitution.md"
+);
 
 export const SUMMARY_THRESHOLD = 0.75;
 const TOOL_OVERHEAD_TOKENS = 1500; // rough cost of the 4 tool definitions
@@ -203,13 +209,46 @@ export function loadGlobalSystemPrompt(): string | null {
   }
 }
 
+export function loadConstitution(): string {
+  try {
+    const constitution = fs
+      .readFileSync(CONSTITUTION_FILE, "utf8")
+      .trim();
+
+    if (!constitution) {
+      throw new Error("Constitution file is empty");
+    }
+
+    return constitution;
+  } catch (err: any) {
+    throw new Error(
+      `Failed to load Terrible Harness Constitution (${CONSTITUTION_FILE}): ${err.message}`,
+      { cause: err }
+    );
+  }
+}
+
 /**
  * Default: the local .system.txt wins, the global file is the fallback.
  * preferGlobal (set by "/system global"): the global file wins instead.
  */
-export function resolveSystemPrompt(local: string | null, preferGlobal = false): string | null {
+export function resolveSystemPrompt(
+  local: string | null,
+  preferGlobal = false
+): string {
+  const constitution = loadConstitution();
   const global = loadGlobalSystemPrompt();
-  return preferGlobal ? (global ?? local) : (local ?? global);
+  const userPrompt = preferGlobal
+    ? global ?? local
+    : local ?? global;
+
+  return [
+    "# TERRIBLE HARNESS CONSTITUTION",
+    constitution,
+    userPrompt
+      ? `\n# USER SYSTEM INSTRUCTIONS\n${userPrompt}`
+      : "",
+  ].join("\n\n");
 }
 
 // ---------------------------------------------------------------------------
