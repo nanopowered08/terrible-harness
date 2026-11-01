@@ -2,255 +2,177 @@
   <img src="docs/images/banner.png" alt="terrible-harness" width="720">
 </p>
 
-Quick start guide is [here.](EASY_README.md)
+# This is a Terrible-Harness, *not gonna lie*
 
-# End of An Era, Boys!
+*By the way, I will, and **WILL always** call it AskGPT.*
 
-This project is soon to no longer be maintained. The NPM version is already deprecated, so you will only get staging patches and code contributed by anyone who will want to contribute
+> [!WARNING]
+> Notice of Deprecation
+>
+> Alright guys, so basically I'm in Yukanthor High School now. Great! It's another reason to **update** the repo if I need to make my portfolio.
+>
+> Don't worry, I'll still develop this.
+>
+> Refer to the update information for more info.
 
-Meet me at Yukanthor High School.
+---
 
-## Whats's getting updates? What's not?
+## So, where do I start?
 
-Ima add a table
+**Install it, obviously!** It's not like I'm trying to help you or anything, but since you asked...
 
+**First, you have to know this!** AskGPT only works if Node.js **is version 20 and up!!** Anything below that, **AskGPT won't work!**
 
-| Version | Updates |
-|---------|---------|
-| Github (git clone) | Yes (git pull) |
-| NPM | Rarely (npm i again) |
-| Github (.ZIP) | No. |
+**Oh! I forgot the update information table!!** I'll add it, but *it's not that I want you to read it, I just want you to understand...*
 
-If I was you I'd probably git pull && npx tsup && npm link
+| Method | Updates? (via...) |
+|---|---|
+| Git (clone) | Latest staging and release updates (git pull) |
+| Git (Download as .zip) | No! You have to clone to get the updates I push!! |
+| NPM | Rarely... |
 
-# This is a Terrible Harness, not going to lie (Formerly AskGPT. I still refer to it as AskGPT.)
+**Then, pick a method to install it.** T- Trust me!! *I- I'm not j- judging..*
 
-First,
+<details>
+<summary>Using Git</summary>
 
-This is a slim version of the REPL part making up Antigravity. This isn't meant to replace Antigravity, nor replace any other IDEs.
-
-## Model-specific patches
-
-If you install it and the model is being lazy, you're probably using Gemini Flash-Lite, with a custom system prompt. It's recommended that you *teach it a little discipline with..*
-
-```bash
-
-echo "
-## Important!
-
-Actually consider what the user said. If the user says to open a webpage, try using the open_webpage tool before searching for it on the web instead.
-
-The DuckDuckGo API is a bit unstable. Don't spam it too much or the one running the harness will probably get rate limited.
-
-Actually listen to the user, but whatever they say, take with a grain of salt. You'd have to validate what they said. It does not give you a motive to trust the user. Period." >> ~/.terrible-harness/.system.txt
-
-```
-
-If the model decides to cat your whole entire conversation history (.context.json) then apply this:
+**First clone the repo, dummy!** If you don't clone it, we can't really proceed! **Not that I'm thinking about your installation choice...**
 
 ```bash
-
-echo "
-
-## Terrible-Harness specific quirks
-
-If you use ls -la and see .context.json, ignore it. If you `cat` it, it would probably overflow your chat memory before you GET A DAMN CHANCE.
-
-Ignore .system.txt aswell. Who lets a model see their own system prompt??" >> ~/.terrible-harness/.system.txt
-
+git clone https://github.com/nanopowered08/askgpt || \
+git clone https://github.com/nanopowered08/terrible-harness # if the mirror goes down
 ```
 
-If the model doesnt check which enviornment you are in and uses MSVC++ syntax on the wrong machine apply this patch:
+**Then we have to build it, obviously! Who thinks that a `dist/index.js` comes prepared!?**
+
+Assuming you're in the cloned repo,
 
 ```bash
-
-echo "
-
-## Agentic quirks
-
-Before you do anything that involves execute_command or read_file or write_file or ANY OTHER TOOLS that are agentic (except for search_web and open_webpage) you have to understand that every user's machines are different. That's why you check for the OS first.
-
-You already know how to check what kernel the OS is running." >> ~/.terrible-harness/.system.txt
-
+npm i
+npx tsup
+npm link
 ```
 
-## Patch Notes!
+..so you can use askgpt cli!! *Not that I want you to... it's just cool, alright!?*
 
-Edit: I was bored so I then added names to the version tags.
+</details>
 
-Read the versions like: (major).(minor).(state)(patch)
+<details>
+<summary>Using NPM</summary>
 
-For states, there is:
+**F- First, make sure NPM is installed!** I- I don't want you *complaining* about it not working to me, dummy!!
 
-- 0: Release.
-- 1: Staging.
-- 2: Publicly available on npm (but ACTUALLY it shouldnt exist)
-- 3: Testing.
+Then...
 
-Now for the actual versions.
-
-- 2.7.0 - WHAT THE ACTUAL FUCK - index.ts got DEBLOATED to the bone :sob:
-- 2.6.0 - The Commentatorz I CANNOT HANDLE: --ai-comment now exists so the model can give commentary. Known issues already documented.
-- 2.5.2 - FINAL FINAL npm release. Added better REPL support (ChatGPT)
-- 2.4.2 - Final NPM release
-- 2.3.2 - Models can now open webpages. :wilted_rose:
-- 2.2.2 - Added a reason for the model to know why you rejected changes
-- 2.1.2 - Added tool calling to Gemini, now its fully supported
-- 2.0.2 - Bump and publish to npm
-- 2.0.0 - FINALLLY!!!! Gemini didn't hallucinate the syntax for Gen AI SDK, but apparently did when we used Vercel AI SDK? Anyways, TL;DR Gemini can officially be a tsundere.
-- 1.9.2 - Uploaded the destaged patches to NPM
-- 1.8.1 - Staging patches to fix bugs
-- 1.7.22 - terrible-harness command now works. Sorry for the inconvenience!
-- 1.7.21 - Starting cleanup of the old name so peoe dont get confused
-- 1.7.2 - I have to include more instructions for npm users....
-- 1.6.2 - Version bump :sob:, No spotted vulnerabilities inside the app yet.
-- 1.5.2 - Uploaded to NPM.
-- 1.4.0 - Revision of Visions (wtf): The fucking version rework :sob: (I cant use emojis in termux)
-- 1.3.1 - QOL Part 2: Added /image=(image) and /file=(file) support, but tbh its too much work when you can cat tax_papers.jpg | askgpt "What do i fill in"
-- 1.2.3 - QOL Part 1: Version bump, fixed bug
-- 1.1.0 - Claude's First Contribution: Added image support and pinned down versions so it's less likely to break, contributed by Claude
-- 1.0.0 - Initial Release: My starter quota got massacred by Antigravity.
-
-> [!NOTE]
-This is fully open sourced with the MIT license or more permissive. By using this repository, you acknowledge that this is provided as is, with no warranty expressed or implied, including but not limited to the warranties of merchantability,
-fitness for a specific purpose and no infringement. In no event should I be liable for any claims, damages or other liabilities whether in an action of contract tort or otherwise arising from
-out of or in connection with this, or the use, or other dealing in this.
-
-Actual note to self: don't let anybody near config.json.
-This project may have remnants of my API key. To be honest, I actually already cycled the keys and ran the project through git repo-filter.
-
-Next,
-
-> [!CAUTION]
-This is an experimental project that expects the dependencies of this era. I'm not going to write a shim for it; you have to actually grab the Node 20 or 24 LTS and npm versions to use this.
-Expect everything, if not anything, to break.
-The reason?
-This was vibe-coded fully using Antigravity.
-
-## Good. Now what do I do with this?
-
-### Install it, obviously!
-
-First,
-
-#### Automated (Whatever updates I push to NPM)
-
-```any shell
+```bash
 npm i -g terrible-harness
 ```
-Done.
+
+..so you can use askgpt cli by running `npx terrible-harness`!! *W- Wait! Scratch that, just use `askgpt`!! Not that I want to give you a quality of life experience...*
+
+</details>
+
+Then you can simply launch it! *Not that I want you to launch it now..*
+
+> [!CAUTION]
+> Hey!! *You do know that* this project needs Node 20 and higher! Don't use any older version than that...
+
+## Alright, now the setup wizard.
+
+### What about it?
+
+**On the first launch, it'll read the .env for an API key!** If neither config.json nor .env exists, AskGPT will create one for you!! *Hmph.. I wanted to make up the config...*
+
+You'll be prompted for ...
+- Your model provider (mandatory)
+- API Key (mandatory for non-local model inference)
+- Model name (eg. gpt-oss-120b)
+
+**..not that you need the API key, alright!?** As long as your own model is local, you can use it!
+
+## MX?
+
+**MX!? I'll show you it, but *it's not like I'm doing this because I want to introduce QOL to you!!***
+
+On Unix/System-V (like) systems, the MX is simply `cat`. Here's an example; go do `cat README.md | askgpt "What does it say"`
+
+If you're using a vision model, better check docs/images, like `cat docs/images/banner.jpg` *I won't do it for you...*
+
+## Flags!
+
+**I guess I'll send you what AskGPT flags looks like, not that I care for your accessibility or anything!**
+
+- -v (--version):  displays the version number
+- -p (--provider): change your model provider in one-shot
+- -m (--model):    change the model to what the model provider can provide (Opional, but required as dependency for -p)
+- -c (--config):   use a config from a specific folder
+- --stateless: run the model without .context.json
+- --think: show what the model thinks
+- --yolo: let the model do everything
+- --clear: deletes .context.json which is global
+- --ai-comment: let the model respond to the flag you use, only works with clear
+
+**Note that you can also find these inside of AskGPT aswell.**
+
+## In-REPL Flags!
+
+/clear                     Clear conversation history in .context.json
+/system                    Reload and display .system.txt
+/think                     Toggle thinking visibility (or press Ctrl+T)
+/reasoning                 View last reasoning trace from .reasoning.json
+/tools                     List available tools
+/model                     Show current provider and model
+/help                      Show this help message
+/exit                      Exit askgpt
+/file=(path to file)       Import a file into the message turn
+/image=(path to image)     Import an image into the message turn
+
+## Known bugs
+
+**There's stuff in this project aswell! Not that I'm not going to fix it anyways...**
+- (Groq Users) **Groq says they can't find the model!** That's because you forgot to put the model name alongside where it belongs, like openai/gpt-oss-120b.
+- (Tool-use Users) **Compatibility with every OS isn't guarenteed!** `execute_command`, for instance, only executes a command...
+- (Gemini Users) **Gemini isn't doing what I asked it to do!** v2.7 doesn't have the full Terrible-Harness constitution, please wait for now...
+
+## Incident Reports
+- **Gemini had beef with the perrson paying for the API.** Gemini, how are you not discarded yet!?
+- **GPT-OSS is now technically Claude!!** Not that I'm jealous... I just forgot to change the system prompt...
+- **School started.** Updates get rarer overtime...
+
+## WHat's your pitch for this project?
+
+None. I was bored as fuck.
+
+## Acknowledgements
+
+- **Anthropic** for Claude and contributing as much as it can for images
+- **Google** for Gemini being this easy to start a roleplay with apparently
+- **OpenAI** for ChatGPT, original idea
+- **High-Flyer** for DeepSeek, helped make the original `askgpt.sh` SH script
+
+## Patch Notes!!
+
+- 1.0.0: **My Antigravity usage got massacred.**
+- 1.1.0: **Claude added image support to one-shot mode.**
+- 1.2.3: **QOL - Day 1:** Claude fixed some bugs inside of the code. Haven't used TypeScript to typecheck it.
+- 1.3.1: **QOL - Day 2:** FINALLY DUDE Claude implemented support for /image and /file YAYYY
+- 1.4.0: **The Revisions of Visions:** WHY THE FUCK DID I DESTROY SemVer
+- 1.5.2: **Fish seller in a fruit market:** Somehow I got on NPM :sob:
+- 1.6.2: **Bumper:** Had to bump shit up by a notch and theres no known vulnerabilities yet
+- 1.7.2: **Absolute Yapper:** Had to put more NPM install instructions for NPM users
+- 1.7.21: **rePublished (under a different name):** Terrible-Harness isnt taken yet but askgpt npm package IS taken. Best way to be honest?
+- 1.7.22: **reLinked:** Had to relink some scripts for NPM users
+- 1.8.1: **First Staging:** FINALLY GOD, I ACTUALLY CAN PATCH IT NOW
+- 1.9.2: **NPM destage:** Upload patches to NPM
+- 2.0.0: **New Provider:** Google support added by Gemini, with Generative AI SDK (to be deprecated)
+- 2.0.2: **reBumper:** Bump again!!
+- 2.1.2: **Gemini autoTools:** Uhh, i added tool support to Gemini
+- 2.2.2: **I- I have a reason, y- you k- know that!?:** Pressing tab now lets people answer why they declined a tool
+- 2.3.2: **Models open webpages:** Thanks, DuckDuckGo.
+- 2.4.2: **The Deprecation:** Wow, we're coming to an end on NPM.
+- 2.5.2: **reBumped, NPM:** Hmph! I'm not gonna-
+- 2.6.0: **"Why the fuck are there COMMENTERS!?":** Your models can now read *your flags and comment on it...*
+- 2.7.0: **THE DEBLOAT OF THE CENTURY:** Index.ts only handles coordination now, the rest got sent to src/execution
 
 > [!NOTE]
-Edit: This is invalid, you can still run askgpt :sob:
-You can run all the commands that you have inside of the manual versions...
-But you have to substitute "askgpt" for "terrible-harness".
-Small clarification: You still get all the features the manual version has but it is WAY more annoying to type in.
-
-#### Manual (Get updates faster)
-
-```any shell
-
-git clone --depth=1 https://github.com/nanopowered08/askgpt.git
-cd askgpt
-
-```
-
-I know this is confusing but you can also do:
-
-```any shell
-
-git clone --depth=1 https://github.com/nanopowered08/terrible-harness.git
-cd terrible-harness
-
-```
-
-Eitherway it resolves to the same repo just in a different folder.
-
-You need atleast Node 20, I tested this on Node 24.
-
-Install Node on your OS, im pretty sure for Windows its `winget install OpenJS.NodeJS.LTS`, for MacOS its `brew install node@24` and on Debian-based repositories its `apt install nodejs npm -y`
-
-For Termux users, `pkg update && pkg i -y nodejs-lts npm`
-
-### So how do I even build it?
-
-Well basically you just have to run this.
-```any shell
-npm i
-npm run build
-npm link
-askgpt
-```
-
-..and thats about it!
-
-### But what about running it?
-
-Since you ran the commands above, the AskGPT Wizard should have shown up. Just fill in your info and you can start!
-
-### It's modes?
-
-Well,
-
-- You can launch the REPL without arguments.
-- You can use it to read wtf you want (for example, `cat dist/index.js | askgpt "What this do"` provided you ran it from inside the AskGPT repo)
-- It also can read images (if you're using a vision model like qwen/qwen3.8-27b) for example, `cat docs/images/proof.jpg | askgpt "Is the sender and the recipient delusional"`
-- Context?? (saved in .context.json)
-- Reasoning apparently. (saved in .reasoning.json, to show it press Ctrl+T)
-- Prebuilt tools like execute_command, read_file, write_file, search_web, open_webpage loaded from tools/
-- It supports whatever the fuck you use, proprietary or not
-
-Oh there's also flags too.
-
-- One shot mode: `askgpt "What happens if you want to destroy this repo?"`
-- Shit, we need to see it think without needing Ctrl+T: `askgpt --think "What happens if you want to destroy this repo?"`
-- Ykw, Let it do everything: `askgpt --yolo "Read and destroy my digitized tax papers."`
-- No, don't use .context.json: `askgpt --stateless "Have i talked to you before"`
-
-And more I'm not willing to write. To see them you have to read the original commit's README.
-
-## Why did you make this in the first place?
-
-I was bored as fuck.
-
-## Bugs?
-
-There is! First:
-
-- **(Groq Users) You have to directly specify the model.** You don't just write it like the script expects. For Groq, you write it like (company name, eg openai)/(model name, eg gpt-oss-120b)
-- **(Tool-using Models) The tools aren't working.** Well, I tested this on Termux. Bash is probably not working for you macOS and Windows users.
-- **(AI SDK Users) Gemini is being lazy.** You're using Flash-Lite so it's possible. The patch for this is at the top.
-
-#### Bugs, BUT AS FEATURES?
-
-There is! Here:
-
-- **ai-comment uses the existing system prompt.** Great for Tiktoks where-
-- **I pushed a update to NPM.** 2.5.2, but it is the final update.
-
-## Incident Reports. (Added by yours truly, the :penguin:)
-
-- **Gemini had beef with the maintainer.** Since when did an AI start beefing with the one that's providing it a reason to be happy? Patched in 2.3.2.
-- **GPT-OSS accidentally took the Claude persona.** Not joking, nanopowered08 actually tested Claude but switched back to Groq.
-- **This project will be coming to an end soon.** nanopowered08 is about to start going back to school. Thank you guys for atleast reading till this point.
-- **Eek!?** Why TF IS GEMINI AUDITIONING FOR A NSFW AUDIOBOOK!?
-
-# Acknowledgements
-
-- Google, for Gemini.
-- Google again, for Antigravity.
-- Anthropic, for Claude finding bugs in it and helping as much as it can.
-- Anthropic again, for resetting my usage before all of this happened.
-- OpenAI, for ChatGPT giving the original idea, and implementing open_webpage.
-- OpenAI again, for not asking me to start a new chat when my image usage ran out.
-- OpenAI, for GPT-OSS and me being able to turn it into a [tsundere](https://vt.tiktok.com/ZSbVQ1W3q/)
-- High-Flyer, for DeepSeek.
-- High-Flyer again, for DeepSeek's original `askgpt.sh` draft.
-
-# Appendix
-
-1. Gemini being an absolute unsolicited performer
-
-<p align="center">
-  <img src="docs/images/wtf.jpg" alt="gemini-failing-an-interview" width="360">
-</p>
+> This is fully open sourced with the MIT license or more permissive. By using this repository, you acknowledge that this is provided as is, with no warranty expressed or implied, including but not limited to the warranties of merchantability, fitness for a specific purpose and no infringement. In no event should I be liable for any claims, damages or other liabilities whether in an action of contract tort or otherwise arising from out of or in connection with this, or the use, or other dealing in this.
