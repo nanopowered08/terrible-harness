@@ -173,6 +173,7 @@ None. I was bored as fuck.
 - 2.5.2: **reBumped, NPM:** Hmph! I'm not gonna-
 - 2.6.0: **"Why the fuck are there COMMENTERS!?":** Your models can now read *your flags and comment on it...*
 - 2.7.0: **THE DEBLOAT OF THE CENTURY:** Index.ts only handles coordination now, the rest got sent to src/execution
+- 2.8.0: **Show me the diff, dummy!!:** `write_file` now previews a diff and asks before writing (y / N / Tab to give a reason). Old contents are backed up to `.terrible-harness-backups/`. `--yolo` skips the prompt.
 
 > [!NOTE]
 > This is fully open sourced with the MIT license or more permissive. By using this repository, you acknowledge that this is provided as is, with no warranty expressed or implied, including but not limited to the warranties of merchantability, fitness for a specific purpose and no infringement. In no event should I be liable for any claims, damages or other liabilities whether in an action of contract tort or otherwise arising from out of or in connection with this, or the use, or other dealing in this.

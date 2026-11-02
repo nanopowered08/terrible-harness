@@ -9,3 +9,4 @@ test_sandbox/
 *.tgz
 .vs/
 .system.txt
+.terrible-harness-backups/
