@@ -20,6 +20,7 @@ import { createInterrupt, isAbortError } from "./Guards.js";
 import {
   maybeSummarize,
   resolveSystemPrompt,
+  resolveUserPrompt,
   GLOBAL_SYSTEM_FILE
 } from "./Summarize.js";
 
@@ -54,7 +55,7 @@ export async function startRepl(config: AskGptConfig): Promise<void> {
   console.log(
     chalk.gray(
       `System Prompt:  ${
-        systemPrompt ? chalk.green(`loaded from ${promptSource}`) : chalk.dim(`none (${SYSTEM_FILE})`)
+        resolveUserPrompt(loadSystemPrompt(), preferGlobal) ? chalk.green(`loaded from ${promptSource}`) : chalk.dim(`none (${SYSTEM_FILE})`)
       }`
     )
   );
@@ -103,9 +104,12 @@ export async function startRepl(config: AskGptConfig): Promise<void> {
     if (trimmed === "/system") {
       systemPrompt = resolveSystemPrompt(loadSystemPrompt(), preferGlobal);
 
-      if (systemPrompt) {
+      const userPrompt = resolveUserPrompt(loadSystemPrompt(), preferGlobal);
+
+      if (userPrompt) {
         console.log(chalk.cyan(`\nCurrent System Prompt (${SYSTEM_FILE}):\n`));
-        console.log(chalk.white(systemPrompt));
+        console.log(chalk.white(userPrompt));
+        console.log(chalk.dim("\n(The constitution and harness rules are always added on top.)"));
       } else {
         console.log(
           chalk.yellow(`No ${SYSTEM_FILE} found. Create a .system.txt file to set custom instructions.`)

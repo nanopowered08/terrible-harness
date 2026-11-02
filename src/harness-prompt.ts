@@ -49,12 +49,25 @@ The harness may provide an internal scratchpad for working notes.
 - Do not create or modify it merely because you noticed this instruction.
 `;
 
+/**
+ * Builds the full system prompt sent to the model:
+ * constitution (if available) -> harness rules -> the user's own instructions.
+ */
 export function composeSystemPrompt(
+  constitution: string | null,
   userSystemPrompt: string | null
 ): string {
-  const userPrompt = userSystemPrompt?.trim();
+  const parts: string[] = [];
 
-  return userPrompt
-    ? `${userPrompt}\n\n---\n\n${HARNESS_SYSTEM_PROMPT.trim()}`
-    : HARNESS_SYSTEM_PROMPT.trim();
+  if (constitution?.trim()) {
+    parts.push(`# TERRIBLE HARNESS CONSTITUTION\n\n${constitution.trim()}`);
+  }
+
+  parts.push(HARNESS_SYSTEM_PROMPT.trim());
+
+  if (userSystemPrompt?.trim()) {
+    parts.push(`# USER SYSTEM INSTRUCTIONS\n\n${userSystemPrompt.trim()}`);
+  }
+
+  return parts.join("\n\n---\n\n");
 }

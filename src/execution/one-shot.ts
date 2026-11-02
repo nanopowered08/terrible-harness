@@ -7,6 +7,7 @@ import {
   saveContext,
   loadSystemPrompt,
 } from "../context.js";
+import { resolveSystemPrompt } from "../Summarize.js";
 import { ReasoningManager } from "../reasoning.js";
 import { streamChatResponse } from "../providers/ai-sdk.js";
 import { executeCustomApi } from "../providers/custom.js";
@@ -24,7 +25,7 @@ export async function executeOneShot(
   const { image, finalPrompt } = input;
 
   const context: ChatMessage[] = isStateless ? [] : loadContext();
-  const systemPrompt = loadSystemPrompt();
+  const systemPrompt = resolveSystemPrompt(loadSystemPrompt());
 
   const att = parseAttachments(finalPrompt);
   const images = [

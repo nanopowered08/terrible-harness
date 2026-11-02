@@ -25,6 +25,7 @@ import chalk from "chalk";
 import { generateText } from "ai";
 import { getModel } from "./providers/ai-sdk.js";
 import { AskGptConfig, ChatMessage } from "./types.js";
+import { composeSystemPrompt } from "./harness-prompt.js";
 
 // ---------------------------------------------------------------------------
 // Context window + token estimate
@@ -209,46 +210,44 @@ export function loadGlobalSystemPrompt(): string | null {
   }
 }
 
-export function loadConstitution(): string {
+let constitutionWarned = false;
+
+/**
+ * Returns the constitution text, or null (with a one-time warning on stderr)
+ * if the file is missing/empty, so the harness still starts instead of crashing.
+ */
+export function loadConstitution(): string | null {
   try {
-    const constitution = fs
-      .readFileSync(CONSTITUTION_FILE, "utf8")
-      .trim();
-
-    if (!constitution) {
-      throw new Error("Constitution file is empty");
-    }
-
-    return constitution;
+    const text = fs.readFileSync(CONSTITUTION_FILE, "utf8").trim();
+    if (text) return text;
+    throw new Error("file is empty");
   } catch (err: any) {
-    throw new Error(
-      `Failed to load Terrible Harness Constitution (${CONSTITUTION_FILE}): ${err.message}`,
-      { cause: err }
-    );
+    if (!constitutionWarned) {
+      constitutionWarned = true;
+      console.error(
+        `[terrible-harness] Constitution not loaded (${CONSTITUTION_FILE}): ${err.message}`
+      );
+    }
+    return null;
   }
 }
 
 /**
  * Default: the local .system.txt wins, the global file is the fallback.
  * preferGlobal (set by "/system global"): the global file wins instead.
+ * Returns only the user's own instructions (no constitution/harness rules).
  */
-export function resolveSystemPrompt(
-  local: string | null,
-  preferGlobal = false
-): string {
-  const constitution = loadConstitution();
+export function resolveUserPrompt(local: string | null, preferGlobal = false): string | null {
   const global = loadGlobalSystemPrompt();
-  const userPrompt = preferGlobal
-    ? global ?? local
-    : local ?? global;
+  return preferGlobal ? (global ?? local) : (local ?? global);
+}
 
-  return [
-    "# TERRIBLE HARNESS CONSTITUTION",
-    constitution,
-    userPrompt
-      ? `\n# USER SYSTEM INSTRUCTIONS\n${userPrompt}`
-      : "",
-  ].join("\n\n");
+/**
+ * The full system prompt: constitution + harness rules + user instructions.
+ * Use this everywhere a prompt is sent to a model (REPL and one-shot).
+ */
+export function resolveSystemPrompt(local: string | null, preferGlobal = false): string {
+  return composeSystemPrompt(loadConstitution(), resolveUserPrompt(local, preferGlobal));
 }
 
 // ---------------------------------------------------------------------------
