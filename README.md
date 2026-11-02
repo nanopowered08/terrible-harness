@@ -174,6 +174,7 @@ None. I was bored as fuck.
 - 2.6.0: **"Why the fuck are there COMMENTERS!?":** Your models can now read *your flags and comment on it...*
 - 2.7.0: **THE DEBLOAT OF THE CENTURY:** Index.ts only handles coordination now, the rest got sent to src/execution
 - 2.8.0: **Show me the diff, dummy!!:** `write_file` now previews a diff and asks before writing (y / N / Tab to give a reason). Old contents are backed up to `.terrible-harness-backups/`. `--yolo` skips the prompt.
+- 2.9.0: **Read it first, baka!!:** `write_file` now refuses to overwrite a file the model hasn't read (or that changed since). Rejections show the model the real file contents, and tool lines now say `rejected` / `failed` instead of always `completed`.
 
 > [!NOTE]
 > This repository is licensed under the MIT license, dummy!! **B- By using this repository...** you pretty much understand that it's **provided as-is!! ALRIGHT!?** T- This also means *there's no warranty expressed or implied,* but it's not limited to that, too!! There's no warranty of merchantability, no warranty for a specific purpose, and no warranty for infringement!! If you cause a scene... w- well I (and the other contributers of this repository) are not liable for any damages or liabilities, not even claims aswell, even if in a contract of any kind arising in or outside connections with this, or the use, or other dealing in this, dummy!! Don't get the wrong idea!!

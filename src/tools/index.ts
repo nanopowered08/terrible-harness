@@ -38,7 +38,8 @@ export async function getTools(options: ToolRegistryOptions = {}): Promise<Recor
         return {
           exitCode: result.exitCode,
           stdout: result.stdout,
-          stderr: result.stderr
+          stderr: result.stderr,
+          ...(result.rejected ? { rejected: true } : {})
         };
       }
     }),
@@ -70,7 +71,7 @@ export async function getTools(options: ToolRegistryOptions = {}): Promise<Recor
     }),
 
     write_file: tool({
-      description: "Write content to a file at the specified path. Creates any missing parent directories. The user sees a diff and may reject the change (with a reason); if rejected, adjust your approach instead of retrying unchanged.",
+      description: "Write content to a file at the specified path. Creates any missing parent directories. You must read_file an existing file before overwriting it. The user sees a diff and may reject the change (with a reason); if rejected, adjust your approach instead of retrying unchanged.",
       inputSchema: jsonSchema({
         type: "object",
         properties: {

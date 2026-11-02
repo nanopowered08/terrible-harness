@@ -141,7 +141,16 @@ export async function streamChatResponse(options: StreamResponseOptions): Promis
       console.log(chalk.cyan(`\n[Calling tool ${toolName}]...`));
     } else if (partType === "tool-result") {
       const toolName = (part as any).toolName || "tool";
-      console.log(chalk.gray(`[Tool ${toolName} completed]`));
+      const out = (part as any).output ?? (part as any).result;
+      if (out?.rejected) {
+        console.log(chalk.yellow(`[Tool ${toolName} rejected]`));
+      } else if (out?.success === false || out?.error) {
+        console.log(chalk.red(`[Tool ${toolName} failed]`));
+      } else if (typeof out?.exitCode === "number" && out.exitCode !== 0) {
+        console.log(chalk.red(`[Tool ${toolName} failed (exit ${out.exitCode})]`));
+      } else {
+        console.log(chalk.gray(`[Tool ${toolName} completed]`));
+      }
     } else if (partType === "error") {
       if (!abortSignal?.aborted) {
         console.error(chalk.red(`\nStream Error: ${(part as any).error}`));
