@@ -32,6 +32,7 @@ function renderDiff(
 
   if (oldText === null) {
     const lines = finalText.split("\n");
+    if (lines.length > 1 && lines[lines.length - 1] === "") lines.pop(); // trailing newline isn't a line
     out(chalk.bold(`--- new file: ${rel} (${lines.length} lines)`));
     for (const l of lines.slice(0, MAX_PREVIEW_LINES)) out(chalk.green("+" + l));
     if (lines.length > MAX_PREVIEW_LINES) {

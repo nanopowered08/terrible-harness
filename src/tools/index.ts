@@ -1,7 +1,8 @@
 import { tool, jsonSchema } from "ai";
 import chalk from "chalk";
 import { executeBash } from "./bash.js";
-import { readFile, writeFile } from "./files.js";
+import { readFile } from "./files.js";
+import { guardedWrite } from "./WriteGuard.js";
 import { searchWeb } from "./search.js";
 import { loadCustomTools } from "./loader.js";
 import { openWebpage } from "./open_webpage.js";
@@ -69,7 +70,7 @@ export async function getTools(options: ToolRegistryOptions = {}): Promise<Recor
     }),
 
     write_file: tool({
-      description: "Write content to a file at the specified path. Creates any missing parent directories.",
+      description: "Write content to a file at the specified path. Creates any missing parent directories. The user sees a diff and may reject the change (with a reason); if rejected, adjust your approach instead of retrying unchanged.",
       inputSchema: jsonSchema({
         type: "object",
         properties: {
@@ -91,7 +92,9 @@ export async function getTools(options: ToolRegistryOptions = {}): Promise<Recor
       execute: async (args: any) => {
         const filePath = args?.filePath || args?.path || args?.file || "";
         const content = args?.content || "";
-        return writeFile(filePath, content, Boolean(args?.append));
+        return guardedWrite(filePath, content, Boolean(args?.append), {
+          autoApprove: options.autoApprove
+        });
       }
     }),
 
