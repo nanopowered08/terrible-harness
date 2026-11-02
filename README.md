@@ -116,16 +116,16 @@ If you're using a vision model, better check docs/images, like `cat docs/images/
 
 ## In-REPL Flags!
 
-/clear                     Clear conversation history in .context.json
-/system                    Reload and display .system.txt
-/think                     Toggle thinking visibility (or press Ctrl+T)
-/reasoning                 View last reasoning trace from .reasoning.json
-/tools                     List available tools
-/model                     Show current provider and model
-/help                      Show this help message
-/exit                      Exit askgpt
-/file=(path to file)       Import a file into the message turn
-/image=(path to image)     Import an image into the message turn
+- /clear                     Clear conversation history in .context.json
+- /system                    Reload and display .system.txt
+- /think                     Toggle thinking visibility (or press Ctrl+T)
+- /reasoning                 View last reasoning trace from .reasoning.json
+- /tools                     List available tools
+- /model                     Show current provider and model
+- /help                      Show this help message
+- /exit                      Exit askgpt
+- /file=(path to file)       Import a file into the message turn
+- /image=(path to image)     Import an image into the message turn
 
 ## Known bugs
 
