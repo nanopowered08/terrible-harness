@@ -99,6 +99,24 @@ You'll be prompted for ...
 "providerOptions": { "google": { "thinkingConfig": { "includeThoughts": true } } }
 ```
 
+### MCP servers (StudioMCP and friends)
+
+Add servers to `config.json` under `mcpServers`. Their tools are discovered when askgpt starts and show up next to the built-in ones (the banner and `/tools` list them, grouped by server). Tool names are prefixed with the server name, like `studio__run_code`.
+
+```json
+"mcpServers": {
+  "studio": { "command": "/path/to/your-studio-mcp-server", "args": ["--stdio"] },
+  "remote": { "url": "https://example.com/mcp", "headers": { "Authorization": "Bearer ${MY_TOKEN}" } }
+}
+```
+
+- **stdio server:** `command`, `args`, `env`, `cwd`. Only a few safe environment variables are passed on, plus whatever you put in `env`. Add `"stderr": "inherit"` to see the server's own logs.
+- **remote server:** `url`, `headers`, and `type` (`"http"` or `"sse"`; URLs ending in `/sse` default to `sse`).
+- `${NAME}` in `command`, `args`, `env`, `url` and `headers` is replaced with that environment variable, so tokens stay out of the file.
+- **Approval:** every MCP tool call asks `[y/N]` (Tab to explain a rejection), like commands and file writes. `--yolo` skips it, or set `"autoApprove": true` on a single server you trust. `"disabled": true` turns a server off.
+- Very large results are cut at 20,000 characters. A server that fails to connect only prints a warning; the rest keep working.
+- MCP servers run with your permissions. Only add ones you trust. Servers are never loaded from the current folder, only from your config.
+
 ## MX?
 
 **MX!? I'll show you it, but *it's not like I'm doing this because I want to introduce QOL to you!!***
@@ -187,6 +205,7 @@ None. I was bored as fuck.
 - 2.10.0: **I- I remember what I did, y- you know!?:** Tool calls and results are now saved with each turn, so the model stops re-listing folders and re-reading files every step.
 - 2.11.0: **Stop breaking in weird ways!!:** Tool errors are reported and remembered, replies from different steps no longer get glued together, `<think>` tags split across chunks are handled, a 50-step cap per turn (`maxSteps` in config), provider failures now exit with code 1 without leaving your message hanging in `.context.json`, and one-shot mode auto-summarizes like the REPL.
 - 2.12.0: **Let me pass options, baka!!:** New `providerOptions` in config.json, passed straight to the AI SDK. Try Gemini's `thinkingConfig.includeThoughts` to keep its thoughts out of the reply.
+- 2.13.0: **MCP, b-because StudioMCP exists!!:** Connect MCP servers (stdio or HTTP/SSE) through `mcpServers` in config.json, and the banner and `/tools` now list the tools that are actually loaded instead of a hardcoded list.
 
 > [!NOTE]
 > The full license is [here.](LICENSE)

@@ -16,7 +16,7 @@ import { ReasoningManager } from "./reasoning.js";
 import { streamChatResponse } from "./providers/ai-sdk.js";
 import { withToolNotes } from "./tool-memory.js";
 import { executeCustomApi } from "./providers/custom.js";
-import { getTools } from "./tools/index.js";
+import { getTools, getToolOrigins } from "./tools/index.js";
 import { createInterrupt, isAbortError } from "./Guards.js";
 import {
   maybeSummarize,
@@ -69,11 +69,27 @@ export async function startRepl(config: AskGptConfig): Promise<void> {
       } [Ctrl+T to toggle]`
     )
   );
-  console.log(
-    chalk.gray(
-      `Tools:          ${chalk.cyan("execute_command, read_file, write_file, search_web, open_webpage")}`
-    )
-  );
+  if (config.mcpServers && Object.keys(config.mcpServers).length > 0) {
+    console.log(chalk.dim("Connecting to MCP servers..."));
+  }
+  const loadedTools = await getTools({
+    autoApprove: config.autoApproveTools,
+    provider: config.provider,
+    mcpServers: config.mcpServers
+  });
+  const origins = getToolOrigins();
+  const localNames = Object.keys(loadedTools).filter((n) => origins.get(n)?.kind !== "mcp");
+  console.log(chalk.gray(`Tools:          ${chalk.cyan(localNames.join(", "))}`));
+
+  const mcpCounts = new Map<string, number>();
+  for (const [name] of Object.entries(loadedTools)) {
+    const o = origins.get(name);
+    if (o?.kind === "mcp" && o.server) mcpCounts.set(o.server, (mcpCounts.get(o.server) ?? 0) + 1);
+  }
+  if (mcpCounts.size > 0) {
+    const summary = [...mcpCounts].map(([server, n]) => `${server} (${n} tool${n === 1 ? "" : "s"})`).join(", ");
+    console.log(chalk.gray(`MCP:            ${chalk.cyan(summary)}`));
+  }
   console.log(chalk.dim("Type /help for slash commands, or type your message to chat.\n"));
 
   readline.emitKeypressEvents(process.stdin);
@@ -148,12 +164,26 @@ export async function startRepl(config: AskGptConfig): Promise<void> {
     if (trimmed === "/tools") {
       const tools = await getTools({
         autoApprove: config.autoApproveTools,
-        provider: config.provider
+        provider: config.provider,
+        mcpServers: config.mcpServers
       });
+      const origins = getToolOrigins();
+
+      const groups = new Map<string, [string, any][]>();
+      for (const [name, tool] of Object.entries(tools)) {
+        const o = origins.get(name);
+        const label = o?.kind === "mcp" ? `MCP: ${o.server}` : o?.kind === "custom" ? "Custom (tools/)" : "Built-in";
+        if (!groups.has(label)) groups.set(label, []);
+        groups.get(label)!.push([name, tool]);
+      }
 
       console.log(chalk.cyan("\nAvailable Tools:"));
-      for (const [name, tool] of Object.entries(tools)) {
-        console.log(` - ${chalk.green(name)}: ${(tool as any).description || ""}`);
+      for (const [label, list] of groups) {
+        console.log(chalk.bold(`\n${label}`));
+        for (const [name, tool] of list) {
+          const desc = String((tool as any).description || "").replace(/\s+/g, " ");
+          console.log(` - ${chalk.green(name)}: ${desc.length > 140 ? desc.slice(0, 140) + "..." : desc}`);
+        }
       }
 
       return true;

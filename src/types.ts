@@ -25,6 +25,25 @@ export interface AskGptConfig {
   /** Hard cap on tool-calling steps per turn (default 50). */
   maxSteps?: number;
   aiComment?: boolean;
+  /** MCP servers to connect to; their tools show up next to the built-in tools. */
+  mcpServers?: Record<string, McpServerConfig>;
+}
+
+export interface McpServerConfig {
+  // stdio server (spawned locally)
+  command?: string;
+  args?: string[];
+  env?: Record<string, string>;
+  cwd?: string;
+  /** "inherit" shows the server's stderr in your terminal (default: hidden). */
+  stderr?: "inherit" | "ignore";
+  // remote server
+  url?: string;
+  type?: "http" | "sse";
+  headers?: Record<string, string>;
+  /** Skip the approval prompt for this server's tools. */
+  autoApprove?: boolean;
+  disabled?: boolean;
 }
 
 export interface ChatMessage {

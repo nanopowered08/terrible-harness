@@ -89,7 +89,8 @@ export async function streamChatResponse(options: StreamResponseOptions): Promis
     ? await getTools({
         autoApprove: config.autoApproveTools,
         provider: config.provider,
-        lastUserPrompt: lastUserMessage
+        lastUserPrompt: lastUserMessage,
+        mcpServers: config.mcpServers
       })
     : undefined;
 
@@ -180,7 +181,7 @@ export async function streamChatResponse(options: StreamResponseOptions): Promis
       );
       if (out?.rejected) {
         console.log(chalk.yellow(`[Tool ${toolName} rejected]`));
-      } else if (out?.success === false || out?.error) {
+      } else if (out?.success === false || out?.error || out?.isError === true) {
         console.log(chalk.red(`[Tool ${toolName} failed]`));
       } else if (typeof out?.exitCode === "number" && out.exitCode !== 0) {
         console.log(chalk.red(`[Tool ${toolName} failed (exit ${out.exitCode})]`));
