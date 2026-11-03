@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { noteContent } from "./ReadTracker.js";
 
 export function readFile(filePath: string, startLine?: number, endLine?: number): { success: boolean; content?: string; error?: string } {
   try {
@@ -21,6 +22,7 @@ export function readFile(filePath: string, startLine?: number, endLine?: number)
         content: lines.slice(start, end).join("\n")
       };
     }
+    noteContent(fullPath, text); // the model has now seen the whole file
     return { success: true, content: text };
   } catch (err: any) {
     return { success: false, error: err.message };

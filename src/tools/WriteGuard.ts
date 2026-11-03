@@ -9,9 +9,11 @@ import chalk from "chalk";
 import { structuredPatch } from "diff";
 import { writeFile } from "./files.js";
 import { confirmTool, rejectionMessage } from "./confirm.js";
+import { checkRead, noteContent } from "./ReadTracker.js";
 
 const BACKUP_DIR = ".terrible-harness-backups"; // add this to your .gitignore
 const MAX_PREVIEW_LINES = 120;
+const MAX_ECHO_CHARS = 4000; // how much of the on-disk file to hand back on rejection
 
 export interface GuardedWriteResult {
   success: boolean;
@@ -19,6 +21,7 @@ export interface GuardedWriteResult {
   error?: string;
   rejected?: boolean;
   unchanged?: boolean;
+  needsRead?: boolean;
   backup?: string;
 }
 
@@ -96,8 +99,25 @@ export async function guardedWrite(
     return { success: false, error: err.message };
   }
 
+  // Overwriting a file the model never read (or that changed since) is how
+  // stale-content loops start. Make it read first. Appends are exempt.
+  if (!append && oldText !== null) {
+    const status = checkRead(fullPath, oldText);
+    if (status !== "ok") {
+      return {
+        success: false,
+        needsRead: true,
+        error:
+          status === "unread"
+            ? `You have not read ${rel} in this session, so write_file will not overwrite it. Call read_file on ${rel} first, then retry with the right content.`
+            : `${rel} changed on disk since you last read it. Call read_file on ${rel} again, then retry with the right content.`
+      };
+    }
+  }
+
   const finalText = append ? (oldText ?? "") + content : content;
   if (oldText !== null && oldText === finalText) {
+    noteContent(fullPath, finalText);
     return { success: true, bytesWritten: 0, unchanged: true };
   }
 
@@ -111,11 +131,25 @@ export async function guardedWrite(
       preview: () => renderDiff(rel, oldText, finalText, false)
     });
     if (!verdict.approved) {
-      return { success: false, rejected: true, error: rejectionMessage(verdict, "change") };
+      // Tell the model what is really on disk so it stops reasoning from a
+      // file state that never happened.
+      let echo = "";
+      if (oldText === null) {
+        echo = `\nNo file was created: ${rel} does not exist.`;
+      } else {
+        const truncated = oldText.length > MAX_ECHO_CHARS;
+        echo =
+          `\n${rel} was NOT changed. Its current contents on disk are:\n` +
+          "```\n" + oldText.slice(0, MAX_ECHO_CHARS) + "\n```" +
+          (truncated ? "\n(truncated; use read_file to see the rest)" : "");
+        if (!truncated) noteContent(fullPath, oldText);
+      }
+      return { success: false, rejected: true, error: rejectionMessage(verdict, "change") + echo };
     }
   }
 
   const backup = oldText !== null ? backupFile(rel, oldText) : undefined;
   const res = writeFile(filePath, content, append);
+  if (res.success) noteContent(fullPath, finalText);
   return { ...res, backup };
 }

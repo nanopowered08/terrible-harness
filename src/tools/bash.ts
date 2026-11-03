@@ -11,7 +11,7 @@ export async function executeBash(
   command: string,
   explanation?: string,
   options: BashOptions = {}
-): Promise<{ stdout: string; stderr: string; exitCode: number }> {
+): Promise<{ stdout: string; stderr: string; exitCode: number; rejected?: boolean }> {
   const trimmed = (command || "").trim();
   if (!trimmed) {
     return {
@@ -40,7 +40,8 @@ export async function executeBash(
       return {
         stdout: "",
         stderr: rejectionMessage(verdict, "command"),
-        exitCode: 1
+        exitCode: 1,
+        rejected: true
       };
     }
   }

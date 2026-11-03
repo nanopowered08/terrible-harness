@@ -174,6 +174,7 @@ None. I was bored as fuck.
 - 2.6.0: **"Why the fuck are there COMMENTERS!?":** Your models can now read *your flags and comment on it...*
 - 2.7.0: **THE DEBLOAT OF THE CENTURY:** Index.ts only handles coordination now, the rest got sent to src/execution
 - 2.8.0: **Show me the diff, dummy!!:** `write_file` now previews a diff and asks before writing (y / N / Tab to give a reason). Old contents are backed up to `.terrible-harness-backups/`. `--yolo` skips the prompt.
+- 2.9.0: **Read it first, baka!!:** `write_file` now refuses to overwrite a file the model hasn't read (or that changed since). Rejections show the model the real file contents, and tool lines now say `rejected` / `failed` instead of always `completed`.
 
 > [!NOTE]
 > The full license is [here.](LICENSE)
