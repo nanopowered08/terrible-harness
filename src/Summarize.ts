@@ -169,11 +169,11 @@ export async function maybeSummarize(opts: MaybeSummarizeOptions): Promise<boole
 
   if (!force && ratio < SUMMARY_THRESHOLD) return false;
   if (context.length === 0) {
-    if (force) console.log(chalk.yellow("Nothing to summarize yet."));
+    if (force) console.error(chalk.yellow("Nothing to summarize yet."));
     return false;
   }
 
-  console.log(
+  console.error(
     chalk.dim(
       `[Context ~${tokens} tokens (${Math.round(ratio * 100)}% of ${windowSize}). Summarizing...]`
     )
@@ -182,15 +182,15 @@ export async function maybeSummarize(opts: MaybeSummarizeOptions): Promise<boole
   try {
     const ok = await summarizeContext({ config, context, systemPrompt });
     if (!ok) {
-      console.log(chalk.yellow("[Summary came back empty, keeping the full context]\n"));
+      console.error(chalk.yellow("[Summary came back empty, keeping the full context]\n"));
       return false;
     }
     save(context);
     const after = estimateTokens(context, systemPrompt, pendingText);
-    console.log(chalk.green(`[Context summarized: ~${tokens} -> ~${after} tokens. Old copy: .context.backup.json]\n`));
+    console.error(chalk.green(`[Context summarized: ~${tokens} -> ~${after} tokens. Old copy: .context.backup.json]\n`));
     return true;
   } catch (err: any) {
-    console.log(chalk.yellow(`[Summarizing failed (${err?.message ?? err}), keeping the full context]\n`));
+    console.error(chalk.yellow(`[Summarizing failed (${err?.message ?? err}), keeping the full context]\n`));
     return false;
   }
 }

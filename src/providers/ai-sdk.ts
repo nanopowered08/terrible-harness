@@ -4,11 +4,25 @@ import { createLoopDetectionCondition } from "../loop-detection.js";
 import { createOpenAI } from "@ai-sdk/openai";
 import { createAnthropic } from "@ai-sdk/anthropic";
 import { createGroq } from "@ai-sdk/groq";
-import { streamText, isLoopFinished } from "ai";
+import { streamText, isStepCount } from "ai";
 import { AskGptConfig, ChatMessage } from "../types.js";
 import { ReasoningManager, InlineThinkFilter } from "../reasoning.js";
 import { getTools } from "../tools/index.js";
 import chalk from "chalk";
+
+export const DEFAULT_MAX_STEPS = 50;
+
+function errorMessage(e: unknown): string {
+  if (e instanceof Error) return e.message;
+  if (typeof e === "string") return e;
+  const msg = (e as any)?.message;
+  if (typeof msg === "string") return msg;
+  try {
+    return JSON.stringify(e);
+  } catch {
+    return String(e);
+  }
+}
 
 export function getModel(config: AskGptConfig): any {
   switch (config.provider) {
@@ -62,12 +76,14 @@ export interface StreamResponseOptions {
   abortSignal?: AbortSignal;
   /** Filled with one short line per tool call, so the caller can save them with the reply. */
   toolRecords?: string[];
+  /** Use this model instead of building one from config (used by tests). */
+  model?: any;
 }
 
 export async function streamChatResponse(options: StreamResponseOptions): Promise<string> {
   const { config, messages, systemPrompt, reasoningManager, enableTools = true, onContentChunk, abortSignal, toolRecords } = options;
 
-  const model = getModel(config);
+  const model = options.model ?? getModel(config);
   const lastUserMessage = [...messages].reverse().find((m) => m.role === "user")?.content;
   const tools = enableTools
     ? await getTools({
@@ -92,6 +108,10 @@ export async function streamChatResponse(options: StreamResponseOptions): Promis
   let hasStartedNativeReasoning = false;
   let fullAssistantText = "";
   const toolInputs = new Map<string, any>();
+  const maxSteps = config.maxSteps ?? DEFAULT_MAX_STEPS;
+  let stepCount = 0;
+  let lastFinishReason: string | undefined;
+  let streamError: unknown = undefined;
 
   const stream = streamText({
     model,
@@ -99,7 +119,8 @@ export async function streamChatResponse(options: StreamResponseOptions): Promis
     messages: formattedMessages,
     tools,
     abortSignal,
-    stopWhen: createLoopDetectionCondition()
+    onError: () => {}, // errors arrive as "error" parts below; the default handler dumps the whole object to stderr
+    stopWhen: [createLoopDetectionCondition(), isStepCount(maxSteps)]
   });
 
   for await (const part of stream.fullStream) {
@@ -123,6 +144,12 @@ export async function streamChatResponse(options: StreamResponseOptions): Promis
         hasStartedNativeReasoning = false;
         reasoningManager.endThinking();
       }
+    } else if (partType === "text-start") {
+      // Text from different steps used to be glued together in the saved reply.
+      if (fullAssistantText && !/\s$/.test(fullAssistantText)) fullAssistantText += "\n\n";
+    } else if (partType === "finish-step") {
+      stepCount++;
+      lastFinishReason = (part as any).finishReason;
     } else if (partType === "text-delta") {
       if (hasStartedNativeReasoning) {
         hasStartedNativeReasoning = false;
@@ -159,16 +186,46 @@ export async function streamChatResponse(options: StreamResponseOptions): Promis
       } else {
         console.log(chalk.gray(`[Tool ${toolName} completed]`));
       }
+    } else if (partType === "tool-error") {
+      const toolName = (part as any).toolName || "tool";
+      const message = errorMessage((part as any).error);
+      toolRecords?.push(
+        summarizeToolCall(toolName, (part as any).input ?? toolInputs.get((part as any).toolCallId), {
+          success: false,
+          error: message
+        })
+      );
+      console.log(chalk.red(`[Tool ${toolName} failed: ${message}]`));
     } else if (partType === "error") {
-      if (!abortSignal?.aborted) {
-        console.error(chalk.red(`\nStream Error: ${(part as any).error}`));
-      }
+      if (!abortSignal?.aborted) streamError = (part as any).error;
     }
+  }
+
+  // Release text held back while waiting to see if it was the start of a <think> tag
+  const leftover = inlineFilter.flush();
+  if (leftover) {
+    fullAssistantText += leftover;
+    if (onContentChunk) onContentChunk(leftover);
+    else process.stdout.write(leftover);
+  }
+
+  if (!abortSignal?.aborted && stepCount >= maxSteps && lastFinishReason === "tool-calls") {
+    console.log(
+      chalk.yellow(`\n[Step limit] Stopped after ${stepCount} tool steps. Say "continue" to keep going.`)
+    );
   }
 
   // Clean up any remaining thinking state
   if (hasStartedNativeReasoning || inlineFilter.isInThink()) {
     reasoningManager.endThinking();
+  }
+
+  if (streamError !== undefined && !abortSignal?.aborted) {
+    const message = errorMessage(streamError);
+    // Nothing usable came back: fail the turn so callers can clean up and set an exit code.
+    if (!fullAssistantText.trim() && !toolRecords?.length) throw new Error(message);
+    // Partial work (text or tools that already ran) is kept so it gets saved.
+    console.error(chalk.red(`\nStream Error: ${message}`));
   }
 
   return fullAssistantText;

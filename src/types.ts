@@ -20,6 +20,8 @@ export interface AskGptConfig {
   };
   custom?: CustomApiConfig;
   autoApproveTools?: boolean;
+  /** Hard cap on tool-calling steps per turn (default 50). */
+  maxSteps?: number;
   aiComment?: boolean;
 }
 
