@@ -176,6 +176,7 @@ None. I was bored as fuck.
 - 2.8.0: **Show me the diff, dummy!!:** `write_file` now previews a diff and asks before writing (y / N / Tab to give a reason). Old contents are backed up to `.terrible-harness-backups/`. `--yolo` skips the prompt.
 - 2.9.0: **Read it first, baka!!:** `write_file` now refuses to overwrite a file the model hasn't read (or that changed since). Rejections show the model the real file contents, and tool lines now say `rejected` / `failed` instead of always `completed`.
 - 2.10.0: **I- I remember what I did, y- you know!?:** Tool calls and results are now saved with each turn, so the model stops re-listing folders and re-reading files every step.
+- 2.11.0: **Stop breaking in weird ways!!:** Tool errors are reported and remembered, replies from different steps no longer get glued together, `<think>` tags split across chunks are handled, a 50-step cap per turn (`maxSteps` in config), provider failures now exit with code 1 without leaving your message hanging in `.context.json`, and one-shot mode auto-summarizes like the REPL.
 
 > [!NOTE]
 > The full license is [here.](LICENSE)

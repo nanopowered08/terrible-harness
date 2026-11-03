@@ -86,7 +86,7 @@ export class ReasoningManager {
  */
 export class InlineThinkFilter {
   private inThinkTag: boolean = false;
-  private thinkTagBuffer: string = "";
+  private pending: string = ""; // a possible half-received <think> / </think> tag
   private onThinkChunk: (chunk: string) => void;
   private onThinkStart: () => void;
   private onThinkEnd: () => void;
@@ -101,8 +101,19 @@ export class InlineThinkFilter {
     this.onThinkEnd = onThinkEnd;
   }
 
-  public process(text: string): string {
-    if (!text || typeof text !== "string") return "";
+  /** Length of the longest tail of `text` that is a proper prefix of `tag`. */
+  private partialTagLength(text: string, tag: string): number {
+    const max = Math.min(text.length, tag.length - 1);
+    for (let len = max; len > 0; len--) {
+      if (text.endsWith(tag.slice(0, len))) return len;
+    }
+    return 0;
+  }
+
+  public process(incoming: string): string {
+    if (!incoming || typeof incoming !== "string") return "";
+    const text = this.pending + incoming;
+    this.pending = "";
     let result = "";
     let i = 0;
 
@@ -110,31 +121,45 @@ export class InlineThinkFilter {
       if (!this.inThinkTag) {
         const startIdx = text.indexOf("<think>", i);
         if (startIdx === -1) {
-          result += text.slice(i);
+          const hold = this.partialTagLength(text.slice(i), "<think>");
+          result += text.slice(i, text.length - hold);
+          this.pending = text.slice(text.length - hold);
           break;
-        } else {
-          result += text.slice(i, startIdx);
-          this.inThinkTag = true;
-          this.onThinkStart();
-          i = startIdx + "<think>".length;
         }
+        result += text.slice(i, startIdx);
+        this.inThinkTag = true;
+        this.onThinkStart();
+        i = startIdx + "<think>".length;
       } else {
         const endIdx = text.indexOf("</think>", i);
         if (endIdx === -1) {
-          const chunk = text.slice(i);
-          this.onThinkChunk(chunk);
+          const hold = this.partialTagLength(text.slice(i), "</think>");
+          const chunk = text.slice(i, text.length - hold);
+          if (chunk) this.onThinkChunk(chunk);
+          this.pending = text.slice(text.length - hold);
           break;
-        } else {
-          const chunk = text.slice(i, endIdx);
-          this.onThinkChunk(chunk);
-          this.inThinkTag = false;
-          this.onThinkEnd();
-          i = endIdx + "</think>".length;
         }
+        const chunk = text.slice(i, endIdx);
+        if (chunk) this.onThinkChunk(chunk);
+        this.inThinkTag = false;
+        this.onThinkEnd();
+        i = endIdx + "</think>".length;
       }
     }
 
     return result;
+  }
+
+  /** Call once when the stream ends: releases text held back as a possible tag. */
+  public flush(): string {
+    const rest = this.pending;
+    this.pending = "";
+    if (!rest) return "";
+    if (this.inThinkTag) {
+      this.onThinkChunk(rest);
+      return "";
+    }
+    return rest;
   }
 
   public isInThink(): boolean {

@@ -7,7 +7,8 @@ import {
   saveContext,
   loadSystemPrompt,
 } from "../context.js";
-import { resolveSystemPrompt } from "../Summarize.js";
+import { maybeSummarize, resolveSystemPrompt } from "../Summarize.js";
+import chalk from "chalk";
 import { ReasoningManager } from "../reasoning.js";
 import { streamChatResponse } from "../providers/ai-sdk.js";
 import { withToolNotes } from "../tool-memory.js";
@@ -35,6 +36,16 @@ export async function executeOneShot(
   ];
   const msg = buildUserMessage(att.text, images);
 
+  if (!isStateless) {
+    await maybeSummarize({
+      config,
+      context,
+      systemPrompt,
+      pendingText: att.text,
+      save: saveContext,
+    });
+  }
+
   context.push({ role: "user", content: msg.stored });
 
   if (!isStateless) {
@@ -61,24 +72,35 @@ export async function executeOneShot(
   let assistantText = "";
   const toolRecords: string[] = [];
 
-  if (config.provider === "custom") {
-    assistantText = await executeCustomApi(
-      config,
-      context,
-      systemPrompt,
-      reasoningManager,
-      (chunk) => process.stdout.write(chunk),
-    );
-  } else {
-    assistantText = await streamChatResponse({
-      config,
-      messages: callMessages,
-      systemPrompt,
-      reasoningManager,
-      enableTools: true,
-      toolRecords,
-      onContentChunk: (chunk) => process.stdout.write(chunk),
-    });
+  try {
+    if (config.provider === "custom") {
+      assistantText = await executeCustomApi(
+        config,
+        context,
+        systemPrompt,
+        reasoningManager,
+        (chunk) => process.stdout.write(chunk),
+      );
+    } else {
+      assistantText = await streamChatResponse({
+        config,
+        messages: callMessages,
+        systemPrompt,
+        reasoningManager,
+        enableTools: true,
+        toolRecords,
+        onContentChunk: (chunk) => process.stdout.write(chunk),
+      });
+    }
+  } catch (error: any) {
+    console.error(chalk.red(`\nError: ${error?.message ?? String(error)}`));
+    // Don't leave a user message with no reply in .context.json
+    if (!isStateless) {
+      context.pop();
+      saveContext(context);
+    }
+    process.exitCode = 1;
+    return;
   }
 
   process.stdout.write("\n");

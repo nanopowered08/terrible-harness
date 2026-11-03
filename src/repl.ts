@@ -351,6 +351,11 @@ export async function startRepl(config: AskGptConfig): Promise<void> {
         }
       } else {
         console.error(chalk.red(`\nError: ${error?.message ?? String(error)}\n`));
+        // Drop the unanswered user message so a retry doesn't send it twice
+        if (context[context.length - 1]?.role === "user") {
+          context.pop();
+          saveContext(context);
+        }
       }
     } finally {
       process.removeListener("SIGINT", onProcessSigint);
