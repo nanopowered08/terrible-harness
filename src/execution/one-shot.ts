@@ -10,6 +10,7 @@ import {
 import { resolveSystemPrompt } from "../Summarize.js";
 import { ReasoningManager } from "../reasoning.js";
 import { streamChatResponse } from "../providers/ai-sdk.js";
+import { withToolNotes } from "../tool-memory.js";
 import { executeCustomApi } from "../providers/custom.js";
 import type { AskGptConfig, ChatMessage } from "../types.js";
 import type { resolveInput } from "./input.js";
@@ -58,6 +59,7 @@ export async function executeOneShot(
   );
 
   let assistantText = "";
+  const toolRecords: string[] = [];
 
   if (config.provider === "custom") {
     assistantText = await executeCustomApi(
@@ -74,14 +76,15 @@ export async function executeOneShot(
       systemPrompt,
       reasoningManager,
       enableTools: true,
+      toolRecords,
       onContentChunk: (chunk) => process.stdout.write(chunk),
     });
   }
 
   process.stdout.write("\n");
 
-  if (!isStateless && assistantText.trim()) {
-    context.push({ role: "assistant", content: assistantText });
+  if (!isStateless && (assistantText.trim() || toolRecords.length)) {
+    context.push({ role: "assistant", content: withToolNotes(toolRecords, assistantText) });
     saveContext(context);
   }
 }
