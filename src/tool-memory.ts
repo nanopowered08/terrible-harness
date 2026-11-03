@@ -13,6 +13,16 @@ function cut(text: unknown, max: number): string {
   return s.length > max ? `${s.slice(0, max)}... (cut, ${s.length} chars total)` : s;
 }
 
+/** Text parts of an MCP-style result ({ content: [{ type: "text", text }] }), if any. */
+function textOf(output: any): string | null {
+  if (!Array.isArray(output?.content)) return null;
+  const text = output.content
+    .filter((p: any) => p?.type === "text" && typeof p.text === "string")
+    .map((p: any) => p.text)
+    .join("\n");
+  return text || null;
+}
+
 export function summarizeToolCall(name: string, input: any, output: any): string {
   const arg = input ?? {};
   const path = arg.filePath ?? arg.path ?? arg.file ?? "";
@@ -46,8 +56,16 @@ export function summarizeToolCall(name: string, input: any, output: any): string
       return `search_web "${cut(arg.query ?? output?.query ?? "", 120)}": ${Array.isArray(output?.results) ? output.results.length : "?"} results`;
     case "open_webpage":
       return `open_webpage ${cut(arg.url ?? "", 200)}: ${output?.error ? `failed (${cut(output.error, MAX_ERR_CHARS)})` : "opened"}`;
-    default:
-      return `${name}: ${output?.error ? `failed (${cut(output.error, MAX_ERR_CHARS)})` : "done"}`;
+    default: {
+      const args = cut(JSON.stringify(arg), 160);
+      if (output?.rejected) return `${name} ${args}: REJECTED by user, not run`;
+      if (output?.error || output?.success === false || output?.isError) {
+        const detail = output?.error ?? textOf(output) ?? "error";
+        return `${name} ${args}: failed (${cut(detail, MAX_ERR_CHARS)})`;
+      }
+      const text = textOf(output);
+      return `${name} ${args}: ${text ? cut(text, MAX_FILE_CHARS) : "done"}`;
+    }
   }
 }
 
