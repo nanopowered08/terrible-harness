@@ -119,6 +119,7 @@ export async function streamChatResponse(options: StreamResponseOptions): Promis
     messages: formattedMessages,
     tools,
     abortSignal,
+    providerOptions: config.providerOptions,
     onError: () => {}, // errors arrive as "error" parts below; the default handler dumps the whole object to stderr
     stopWhen: [createLoopDetectionCondition(), isStepCount(maxSteps)]
   });

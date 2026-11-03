@@ -90,6 +90,15 @@ You'll be prompted for ...
 
 **..not that you need the API key, alright!?** As long as your own model is local, you can use it!
 
+### Optional config.json fields
+
+- `maxSteps`: hard cap on tool-calling steps per turn (default 50)
+- `providerOptions`: passed straight to the AI SDK, keyed by provider. For example, to ask Gemini to send its thoughts separately (so they go to `.reasoning.json` instead of the reply, if your model supports it):
+
+```json
+"providerOptions": { "google": { "thinkingConfig": { "includeThoughts": true } } }
+```
+
 ## MX?
 
 **MX!? I'll show you it, but *it's not like I'm doing this because I want to introduce QOL to you!!***
@@ -177,6 +186,7 @@ None. I was bored as fuck.
 - 2.9.0: **Read it first, baka!!:** `write_file` now refuses to overwrite a file the model hasn't read (or that changed since). Rejections show the model the real file contents, and tool lines now say `rejected` / `failed` instead of always `completed`.
 - 2.10.0: **I- I remember what I did, y- you know!?:** Tool calls and results are now saved with each turn, so the model stops re-listing folders and re-reading files every step.
 - 2.11.0: **Stop breaking in weird ways!!:** Tool errors are reported and remembered, replies from different steps no longer get glued together, `<think>` tags split across chunks are handled, a 50-step cap per turn (`maxSteps` in config), provider failures now exit with code 1 without leaving your message hanging in `.context.json`, and one-shot mode auto-summarizes like the REPL.
+- 2.12.0: **Let me pass options, baka!!:** New `providerOptions` in config.json, passed straight to the AI SDK. Try Gemini's `thinkingConfig.includeThoughts` to keep its thoughts out of the reply.
 
 > [!NOTE]
 > The full license is [here.](LICENSE)

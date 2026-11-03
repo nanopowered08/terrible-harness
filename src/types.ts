@@ -19,6 +19,8 @@ export interface AskGptConfig {
     reasoningPath?: string;
   };
   custom?: CustomApiConfig;
+  /** Passed straight to the AI SDK as providerOptions, e.g. { "google": { "thinkingConfig": { "includeThoughts": true } } } */
+  providerOptions?: Record<string, Record<string, any>>;
   autoApproveTools?: boolean;
   /** Hard cap on tool-calling steps per turn (default 50). */
   maxSteps?: number;
