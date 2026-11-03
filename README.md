@@ -176,4 +176,6 @@ None. I was bored as fuck.
 - 2.8.0: **Show me the diff, dummy!!:** `write_file` now previews a diff and asks before writing (y / N / Tab to give a reason). Old contents are backed up to `.terrible-harness-backups/`. `--yolo` skips the prompt.
 
 > [!NOTE]
+> The full license is [here.](LICENSE)
+> But.. I know you're gonna not read it so I'll include it here!!
 > This repository is licensed under the MIT license, dummy!! **B- By using this repository...** you pretty much understand that it's **provided as-is!! ALRIGHT!?** T- This also means *there's no warranty expressed or implied,* but it's not limited to that, too!! There's no warranty of merchantability, no warranty for a specific purpose, and no warranty for infringement!! If you cause a scene... w- well I (and the other contributers of this repository) are not liable for any damages or liabilities, not even claims aswell, even if in a contract of any kind arising in or outside connections with this, or the use, or other dealing in this, dummy!! Don't get the wrong idea!!
