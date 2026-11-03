@@ -14,6 +14,7 @@ import {
 } from "./context.js";
 import { ReasoningManager } from "./reasoning.js";
 import { streamChatResponse } from "./providers/ai-sdk.js";
+import { withToolNotes } from "./tool-memory.js";
 import { executeCustomApi } from "./providers/custom.js";
 import { getTools } from "./tools/index.js";
 import { createInterrupt, isAbortError } from "./Guards.js";
@@ -301,6 +302,7 @@ export async function startRepl(config: AskGptConfig): Promise<void> {
       process.on("SIGINT", onProcessSigint);
 
       let assistantText = "";
+      const toolRecords: string[] = [];
 
       if (config.provider === "custom") {
         assistantText = await executeCustomApi(
@@ -321,6 +323,7 @@ export async function startRepl(config: AskGptConfig): Promise<void> {
           abortSignal: turnSignal,
           reasoningManager,
           enableTools: true,
+          toolRecords,
           onContentChunk: (chunk) => {
             if (!turnSignal.aborted) process.stdout.write(chunk);
           }
@@ -336,8 +339,8 @@ export async function startRepl(config: AskGptConfig): Promise<void> {
       } else {
         process.stdout.write("\n\n");
 
-        if (assistantText.trim()) {
-          context.push({ role: "assistant", content: assistantText });
+        if (assistantText.trim() || toolRecords.length) {
+          context.push({ role: "assistant", content: withToolNotes(toolRecords, assistantText) });
           saveContext(context);
         }
       }

@@ -1,3 +1,4 @@
+import { summarizeToolCall } from "../tool-memory.js";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { createLoopDetectionCondition } from "../loop-detection.js";
 import { createOpenAI } from "@ai-sdk/openai";
@@ -59,10 +60,12 @@ export interface StreamResponseOptions {
   enableTools?: boolean;
   onContentChunk?: (chunk: string) => void;
   abortSignal?: AbortSignal;
+  /** Filled with one short line per tool call, so the caller can save them with the reply. */
+  toolRecords?: string[];
 }
 
 export async function streamChatResponse(options: StreamResponseOptions): Promise<string> {
-  const { config, messages, systemPrompt, reasoningManager, enableTools = true, onContentChunk, abortSignal } = options;
+  const { config, messages, systemPrompt, reasoningManager, enableTools = true, onContentChunk, abortSignal, toolRecords } = options;
 
   const model = getModel(config);
   const lastUserMessage = [...messages].reverse().find((m) => m.role === "user")?.content;
@@ -88,6 +91,7 @@ export async function streamChatResponse(options: StreamResponseOptions): Promis
 
   let hasStartedNativeReasoning = false;
   let fullAssistantText = "";
+  const toolInputs = new Map<string, any>();
 
   const stream = streamText({
     model,
@@ -138,10 +142,14 @@ export async function streamChatResponse(options: StreamResponseOptions): Promis
       }
     } else if (partType === "tool-call") {
       const toolName = (part as any).toolName || "tool";
+      toolInputs.set((part as any).toolCallId, (part as any).input ?? (part as any).args);
       console.log(chalk.cyan(`\n[Calling tool ${toolName}]...`));
     } else if (partType === "tool-result") {
       const toolName = (part as any).toolName || "tool";
       const out = (part as any).output ?? (part as any).result;
+      toolRecords?.push(
+        summarizeToolCall(toolName, (part as any).input ?? toolInputs.get((part as any).toolCallId), out)
+      );
       if (out?.rejected) {
         console.log(chalk.yellow(`[Tool ${toolName} rejected]`));
       } else if (out?.success === false || out?.error) {
