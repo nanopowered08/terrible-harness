@@ -90,6 +90,14 @@ You'll be prompted for ...
 
 **..not that you need the API key, alright!?** As long as your own model is local, you can use it!
 
+### Editing your setup from inside askgpt (`/edit`)
+
+- **`/edit cfg`**: look through the options in your `config.json` (provider, model, API key, base URL, thinking, auto-approve, max steps, provider options, AI comment, MCP servers) and change any of them. Pick **Load another configuration...** to switch this session to another config file (any `config*.json` in `~/.terrible-harness/` or the current folder, a path you type, or a new one made with the setup wizard). Starting askgpt later still uses `config.json` unless you pass `--config`.
+- **`/edit mcp`**: add, change, disable/enable or remove MCP servers (stdio or http/sse). When you finish, askgpt reconnects and shows the new tool list.
+- **`/edit system`**: opens the system prompt in your text editor (`$VISUAL`, then `$EDITOR`, then `nano`/`vim`/`vi`). When you close the editor the prompt is reloaded. It edits the file `/system global|local` points at.
+
+Your config is read and written exactly as it is in the file, so an API key that only lives in an environment variable is never copied into it. A config file with invalid JSON is never overwritten.
+
 ### Optional config.json fields
 
 - `maxSteps`: hard cap on tool-calling steps per turn (default 50)
@@ -206,6 +214,7 @@ None. I was bored as fuck.
 - 2.11.0: **Stop breaking in weird ways!!:** Tool errors are reported and remembered, replies from different steps no longer get glued together, `<think>` tags split across chunks are handled, a 50-step cap per turn (`maxSteps` in config), provider failures now exit with code 1 without leaving your message hanging in `.context.json`, and one-shot mode auto-summarizes like the REPL.
 - 2.12.0: **Let me pass options, baka!!:** New `providerOptions` in config.json, passed straight to the AI SDK. Try Gemini's `thinkingConfig.includeThoughts` to keep its thoughts out of the reply.
 - 2.13.0: **MCP, b-because StudioMCP exists!!:** Connect MCP servers (stdio or HTTP/SSE) through `mcpServers` in config.json, and the banner and `/tools` now list the tools that are actually loaded instead of a hardcoded list.
+- 2.14.0: **Fine, I'll let you edit stuff from in here!!:** New `/edit cfg`, `/edit mcp` and `/edit system` commands, so you don't have to leave askgpt (or hand-edit JSON) to change your config, MCP servers or system prompt. The setup wizard's provider questions are reused by them.
 
 > [!NOTE]
 > The full license is [here.](LICENSE)
