@@ -4,6 +4,7 @@ import { executeClear } from "./execution/clear.js";
 import { executeOneShot } from "./execution/one-shot.js";
 import { resolveInput } from "./execution/input.js";
 import { startRepl } from "./repl.js";
+import { closeMcpClients } from "./tools/mcp.js";
 import { initializeConfig } from "./execution/configuration.js";
 
 (globalThis as any).AI_SDK_LOG_WARNINGS = false;
@@ -33,6 +34,7 @@ async function main() {
   // If no prompt and no piped input, start interactive REPL
   if (!finalPrompt) {
     await startRepl(config);
+    await closeMcpClients();
     return;
   }
 
@@ -50,8 +52,11 @@ async function main() {
     );
   } catch (err: any) {
     console.error(chalk.red(`\nError: ${err.message}`));
+    await closeMcpClients();
     process.exit(1);
   }
+
+  await closeMcpClients();
 }
 
 main().catch((err) => {

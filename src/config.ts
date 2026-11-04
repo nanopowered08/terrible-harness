@@ -25,6 +25,15 @@ export const DEFAULT_MODELS: Record<ProviderType, string> = {
   custom: "custom-model"
 };
 
+// The file the active configuration was loaded from (used by /edit to know where to save).
+let loadedConfigFile: string | null = null;
+export function getLoadedConfigFile(): string | null {
+  return loadedConfigFile;
+}
+export function setLoadedConfigFile(file: string | null): void {
+  loadedConfigFile = file;
+}
+
 export function findConfigFile(customPath?: string): string | null {
   if (customPath) {
     const resolved = path.resolve(process.cwd(), customPath);
@@ -88,11 +97,49 @@ export function loadConfig(customPath?: string): AskGptConfig | null {
       parsed.model = process.env.MODEL;
     }
 
+    loadedConfigFile = configFile;
     return parsed;
   } catch (err: any) {
     console.error(chalk.red(`Failed to parse config file ${configFile}: ${err.message}`));
     return null;
   }
+}
+
+/** Reads a config file exactly as written (no environment overrides). Throws on invalid JSON. */
+export function readRawConfig(file: string): AskGptConfig {
+  const parsed = JSON.parse(fs.readFileSync(file, "utf-8"));
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+    throw new Error("the file does not contain a JSON object");
+  }
+  return parsed as AskGptConfig;
+}
+
+/** Writes a config file without printing anything. Owner-only permissions, since it may hold API keys. */
+export function writeConfigFile(file: string, config: AskGptConfig): void {
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  fs.writeFileSync(file, JSON.stringify(config, null, 2), { encoding: "utf-8", mode: 0o600 });
+}
+
+/** Config files you can switch to: config*.json in the global folder and in the current folder. */
+export function listConfigFiles(): string[] {
+  const found = new Set<string>();
+  for (const dir of [GLOBAL_CONFIG_DIR, process.cwd()]) {
+    try {
+      for (const name of fs.readdirSync(dir)) {
+        if (!/^config.*\.json$/.test(name)) continue;
+        const full = path.join(dir, name);
+        try {
+          const raw = readRawConfig(full);
+          if (typeof raw.provider === "string") found.add(full);
+        } catch {
+          // not a usable config file
+        }
+      }
+    } catch {
+      // folder doesn't exist
+    }
+  }
+  return [...found];
 }
 
 export function saveConfig(config: AskGptConfig, destination: string = GLOBAL_CONFIG_FILE): void {
@@ -106,100 +153,89 @@ export function saveConfig(config: AskGptConfig, destination: string = GLOBAL_CO
   }
 }
 
-export async function runConfigWizard(): Promise<AskGptConfig> {
-  console.log(chalk.bold.cyan("\n First time? Well...\n"));
-  console.log(chalk.gray("No config.json found. Let's configure your LLM provider.\n"));
+export interface ProviderSettings {
+  apiKey?: string;
+  baseURL?: string;
+  model: string;
+  custom?: AskGptConfig["custom"];
+}
 
-  const provider = (await select({
-    message: "Select your LLM Provider:",
-    choices: [
-      { name: "Groq (Fast, supports DeepSeek R1, Llama 3.3, tool calling)", value: "groq" },
-      { name: "OpenAI (GPT-4o, o3-mini)", value: "openai" },
-      { name: "Google (Literal lightning)", value: "google" },
-      { name: "Anthropic (Claude 3.7 Sonnet)", value: "anthropic" },
-      { name: "Ollama / llama.cpp (Local OpenAI-compatible API)", value: "ollama" },
-      { name: "Custom JSON API (Custom endpoint & payload template)", value: "custom" }
-    ]
-  })) as ProviderType;
+export const PROVIDER_CHOICES: { name: string; value: ProviderType }[] = [
+  { name: "Groq (Fast, supports DeepSeek R1, Llama 3.3, tool calling)", value: "groq" },
+  { name: "OpenAI (GPT-4o, o3-mini)", value: "openai" },
+  { name: "Google (Literal lightning)", value: "google" },
+  { name: "Anthropic (Claude 3.7 Sonnet)", value: "anthropic" },
+  { name: "Ollama / llama.cpp (Local OpenAI-compatible API)", value: "ollama" },
+  { name: "Custom JSON API (Custom endpoint & payload template)", value: "custom" }
+];
 
-  let apiKey: string | undefined;
-  let baseURL: string | undefined;
-  let model: string = DEFAULT_MODELS[provider] || "gpt-4o";
+/**
+ * The per-provider questions (API key, base URL, model). Used by the first-run
+ * wizard and by /edit cfg. With `current`, answers default to the current values
+ * and an empty API key keeps the existing one.
+ */
+export async function promptProviderSettings(
+  provider: ProviderType,
+  current?: Partial<AskGptConfig>
+): Promise<ProviderSettings> {
+  let apiKey: string | undefined = current?.apiKey;
+  let baseURL: string | undefined = current?.baseURL;
+  let model: string = current?.model || DEFAULT_MODELS[provider] || "gpt-4o";
+  let custom = current?.custom;
+
+  const askKey = async (message: string): Promise<void> => {
+    const entered = await password({
+      message: current?.apiKey ? `${message} (leave empty to keep the current one)` : message,
+      mask: "*"
+    });
+    if (entered) apiKey = entered;
+  };
 
   if (provider === "groq") {
-    apiKey = await password({
-      message: "Enter your Groq API Key (get one at console.groq.com):",
-      mask: "*"
-    });
-    model = await input({
-      message: "Enter model name:",
-      default: DEFAULT_MODELS.groq
-    });
+    await askKey("Enter your Groq API Key (get one at console.groq.com):");
+    model = await input({ message: "Enter model name:", default: model });
   } else if (provider === "openai") {
-    apiKey = await password({
-      message: "Enter your OpenAI API Key:",
-      mask: "*"
-    });
-    model = await input({
-      message: "Enter model name:",
-      default: DEFAULT_MODELS.openai
-    });
+    await askKey("Enter your OpenAI API Key:");
+    model = await input({ message: "Enter model name:", default: model });
   } else if (provider === "anthropic") {
-    apiKey = await password({
-      message: "Enter your Anthropic API Key:",
-      mask: "*"
-    });
-    model = await input({
-      message: "Enter model name:",
-      default: DEFAULT_MODELS.anthropic
-    });
+    await askKey("Enter your Anthropic API Key:");
+    model = await input({ message: "Enter model name:", default: model });
   } else if (provider === "ollama") {
     baseURL = await input({
       message: "Enter API Base URL:",
-      default: "http://localhost:11434/v1"
+      default: current?.baseURL || "http://localhost:11434/v1"
     });
-    apiKey = (await input({
-      message: "Enter API Key (optional for local):",
-      default: "ollama"
-    })) || "ollama";
-    model = await input({
-      message: "Enter model name:",
-      default: DEFAULT_MODELS.ollama
-    });
+    apiKey =
+      (await input({
+        message: "Enter API Key (optional for local):",
+        default: current?.apiKey || "ollama"
+      })) || "ollama";
+    model = await input({ message: "Enter model name:", default: model });
   } else if (provider === "google") {
-    apiKey = await password({
-      message: "Enter your Gemini API Key (from AI Studio):",
-      mask: "*"
-    });
-    model = await input({
-      message: "Enter model name:",
-      default: DEFAULT_MODELS.google
-    });
-  }
-
-  let customConfig = undefined;
-  if (provider === "custom") {
+    await askKey("Enter your Gemini API Key (from AI Studio):");
+    model = await input({ message: "Enter model name:", default: model });
+  } else if (provider === "custom") {
     const url = await input({
       message: "Enter custom endpoint URL:",
-      default: "http://127.0.0.1:8080/completion"
+      default: current?.custom?.url || "http://127.0.0.1:8080/completion"
     });
     const method = await input({
       message: "HTTP Method:",
-      default: "POST"
+      default: current?.custom?.method || "POST"
     });
     const responsePath = await input({
       message: "JSON path to extract response text (e.g. content or choices[0].text):",
-      default: "content"
+      default: current?.custom?.responsePath || "content"
     });
     model = await input({
       message: "Model identifier:",
-      default: "custom"
+      default: current?.model || "custom"
     });
-    customConfig = {
+    custom = {
       url,
       method,
-      headers: { "Content-Type": "application/json" },
-      payloadTemplate: {
+      headers: current?.custom?.headers ?? { "Content-Type": "application/json" },
+      payloadTemplate: current?.custom?.payloadTemplate ?? {
         prompt: "{{prompt}}",
         messages: "{{messages}}",
         temperature: 0.7
@@ -208,17 +244,36 @@ export async function runConfigWizard(): Promise<AskGptConfig> {
     };
   }
 
+  return { apiKey, baseURL, model, custom };
+}
+
+export async function runConfigWizard(
+  options: { destination?: string; intro?: boolean } = {}
+): Promise<AskGptConfig> {
+  if (options.intro !== false) {
+    console.log(chalk.bold.cyan("\n First time? Well...\n"));
+    console.log(chalk.gray("No config.json found. Let's configure your LLM provider.\n"));
+  }
+
+  const provider = (await select({
+    message: "Select your LLM Provider:",
+    choices: PROVIDER_CHOICES
+  })) as ProviderType;
+
+  const settings = await promptProviderSettings(provider);
+
   const newConfig: AskGptConfig = {
     provider,
-    model,
-    apiKey,
-    baseURL,
+    model: settings.model,
+    apiKey: settings.apiKey,
+    baseURL: settings.baseURL,
     thinking: {
       defaultVisible: false
     },
-    custom: customConfig
+    custom: settings.custom
   };
 
-  saveConfig(newConfig); // goes to the global dir now
+  saveConfig(newConfig, options.destination); // default: the global config.json
+  loadedConfigFile = path.resolve(process.cwd(), options.destination ?? GLOBAL_CONFIG_FILE);
   return newConfig;
 }

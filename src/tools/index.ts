@@ -6,11 +6,21 @@ import { guardedWrite } from "./WriteGuard.js";
 import { searchWeb } from "./search.js";
 import { loadCustomTools } from "./loader.js";
 import { openWebpage } from "./open_webpage.js";
+import { loadMcpTools } from "./mcp.js";
+import type { McpServerConfig } from "../types.js";
 
 export interface ToolRegistryOptions {
   autoApprove?: boolean;
   provider?: string;
   lastUserPrompt?: string;
+  mcpServers?: Record<string, McpServerConfig>;
+}
+
+/** Where each tool came from, for the banner and /tools. Rebuilt on every getTools() call. */
+export type ToolOrigin = { kind: "built-in" | "custom" | "mcp"; server?: string };
+let toolOrigins = new Map<string, ToolOrigin>();
+export function getToolOrigins(): Map<string, ToolOrigin> {
+  return toolOrigins;
 }
 
 export async function getTools(options: ToolRegistryOptions = {}): Promise<Record<string, any>> {
@@ -149,6 +159,9 @@ export async function getTools(options: ToolRegistryOptions = {}): Promise<Recor
     })
   };
 
+  const origins = new Map<string, ToolOrigin>();
+  for (const name of Object.keys(tools)) origins.set(name, { kind: "built-in" });
+
   // Load custom tools
   const customTools = await loadCustomTools();
   for (const custom of customTools) {
@@ -164,5 +177,18 @@ export async function getTools(options: ToolRegistryOptions = {}): Promise<Recor
     }
   }
 
+  for (const custom of customTools) {
+    if (tools[custom.name] && !origins.has(custom.name)) origins.set(custom.name, { kind: "custom" });
+  }
+
+  // MCP tools (connected once per run; built-in and custom names win on a clash)
+  const mcp = await loadMcpTools(options.mcpServers, Boolean(options.autoApprove));
+  for (const info of mcp.info) {
+    if (tools[info.name]) continue;
+    tools[info.name] = mcp.tools[info.name];
+    origins.set(info.name, { kind: "mcp", server: info.server });
+  }
+
+  toolOrigins = origins;
   return tools;
 }

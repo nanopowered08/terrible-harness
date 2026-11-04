@@ -16,7 +16,9 @@ import { ReasoningManager } from "./reasoning.js";
 import { streamChatResponse } from "./providers/ai-sdk.js";
 import { withToolNotes } from "./tool-memory.js";
 import { executeCustomApi } from "./providers/custom.js";
-import { getTools } from "./tools/index.js";
+import { getTools, getToolOrigins } from "./tools/index.js";
+import { closeMcpClients } from "./tools/mcp.js";
+import { runEdit, type EditHost } from "./edit.js";
 import { createInterrupt, isAbortError } from "./Guards.js";
 import {
   maybeSummarize,
@@ -40,8 +42,11 @@ export async function startRepl(config: AskGptConfig): Promise<void> {
   console.log(chalk.bold.hex("#7c3aed")("\n┌───────────────────────────────────────────────┐"));
   console.log(chalk.bold.hex("#7c3aed")("│             terrible-harness                  │"));
   console.log(chalk.bold.hex("#7c3aed")("└───────────────────────────────────────────────┘"));
-  console.log(chalk.gray(`Provider:       ${chalk.cyan(config.provider)}`));
-  console.log(chalk.gray(`Model:          ${chalk.green(config.model)}`));
+  const printModelLines = (): void => {
+    console.log(chalk.gray(`Provider:       ${chalk.cyan(config.provider)}`));
+    console.log(chalk.gray(`Model:          ${chalk.green(config.model)}`));
+  };
+  printModelLines();
   console.log(
     chalk.gray(
       `Context:        ${
@@ -69,17 +74,71 @@ export async function startRepl(config: AskGptConfig): Promise<void> {
       } [Ctrl+T to toggle]`
     )
   );
-  console.log(
-    chalk.gray(
-      `Tools:          ${chalk.cyan("execute_command, read_file, write_file, search_web, open_webpage")}`
-    )
-  );
+  const printToolSummary = async (): Promise<void> => {
+    if (config.mcpServers && Object.keys(config.mcpServers).length > 0) {
+      console.log(chalk.dim("Connecting to MCP servers..."));
+    }
+    const loadedTools = await getTools({
+      autoApprove: config.autoApproveTools,
+      provider: config.provider,
+      mcpServers: config.mcpServers
+    });
+    const origins = getToolOrigins();
+    const localNames = Object.keys(loadedTools).filter((n) => origins.get(n)?.kind !== "mcp");
+    console.log(chalk.gray(`Tools:          ${chalk.cyan(localNames.join(", "))}`));
+
+    const mcpCounts = new Map<string, number>();
+    for (const [name] of Object.entries(loadedTools)) {
+      const o = origins.get(name);
+      if (o?.kind === "mcp" && o.server) mcpCounts.set(o.server, (mcpCounts.get(o.server) ?? 0) + 1);
+    }
+    if (mcpCounts.size > 0) {
+      const summary = [...mcpCounts].map(([server, n]) => `${server} (${n} tool${n === 1 ? "" : "s"})`).join(", ");
+      console.log(chalk.gray(`MCP:            ${chalk.cyan(summary)}`));
+    }
+  };
+  await printToolSummary();
   console.log(chalk.dim("Type /help for slash commands, or type your message to chat.\n"));
 
   readline.emitKeypressEvents(process.stdin);
 
+  // What the /edit commands can change in this session
+  const editHost: EditHost = {
+    getConfig: () => config,
+    updateConfig: (patch) => {
+      for (const [key, value] of Object.entries(patch)) {
+        if (value === undefined) delete (config as any)[key];
+        else (config as any)[key] = value;
+      }
+      if ("thinking" in patch) thinkingVisible = config.thinking?.defaultVisible ?? false;
+    },
+    replaceConfig: async (next) => {
+      await closeMcpClients();
+      config = next;
+      thinkingVisible = next.thinking?.defaultVisible ?? false;
+      console.log("");
+      printModelLines();
+      await printToolSummary();
+    },
+    applyMcpServers: async () => {
+      await closeMcpClients();
+      console.log("");
+      await printToolSummary();
+    },
+    getPreferGlobal: () => preferGlobal,
+    reloadSystemPrompt: () => {
+      systemPrompt = resolveSystemPrompt(loadSystemPrompt(), preferGlobal);
+      return resolveUserPrompt(loadSystemPrompt(), preferGlobal);
+    }
+  };
+
   const handleSlashCommand = async (cmd: string): Promise<boolean> => {
     const trimmed = cmd.trim();
+
+    if (trimmed === "/edit" || trimmed.startsWith("/edit ")) {
+      await runEdit(trimmed.slice(5), editHost);
+      return true;
+    }
 
     if (trimmed === "/clear") {
       clearContext();
@@ -148,12 +207,26 @@ export async function startRepl(config: AskGptConfig): Promise<void> {
     if (trimmed === "/tools") {
       const tools = await getTools({
         autoApprove: config.autoApproveTools,
-        provider: config.provider
+        provider: config.provider,
+        mcpServers: config.mcpServers
       });
+      const origins = getToolOrigins();
+
+      const groups = new Map<string, [string, any][]>();
+      for (const [name, tool] of Object.entries(tools)) {
+        const o = origins.get(name);
+        const label = o?.kind === "mcp" ? `MCP: ${o.server}` : o?.kind === "custom" ? "Custom (tools/)" : "Built-in";
+        if (!groups.has(label)) groups.set(label, []);
+        groups.get(label)!.push([name, tool]);
+      }
 
       console.log(chalk.cyan("\nAvailable Tools:"));
-      for (const [name, tool] of Object.entries(tools)) {
-        console.log(` - ${chalk.green(name)}: ${(tool as any).description || ""}`);
+      for (const [label, list] of groups) {
+        console.log(chalk.bold(`\n${label}`));
+        for (const [name, tool] of list) {
+          const desc = String((tool as any).description || "").replace(/\s+/g, " ");
+          console.log(` - ${chalk.green(name)}: ${desc.length > 140 ? desc.slice(0, 140) + "..." : desc}`);
+        }
       }
 
       return true;
@@ -178,6 +251,9 @@ export async function startRepl(config: AskGptConfig): Promise<void> {
       console.log(`  ${chalk.cyan("/file=(path to file)")}       Import a file into the message turn`);
       console.log(`  ${chalk.cyan("/image=(path to image)")}     Import an image into the message turn\n`);
       console.log(`  ${chalk.cyan("/summarize")}                 Summarize the context now (auto at 75% of the window)`);
+      console.log(`  ${chalk.cyan("/edit cfg")}                   Look through / change config.json options, or load another configuration`);
+      console.log(`  ${chalk.cyan("/edit mcp")}                   Add, change or remove MCP servers`);
+      console.log(`  ${chalk.cyan("/edit system")}                Edit the system prompt in your text editor and reload it`);
       console.log(`  ${chalk.cyan("/system global|local")}       Prefer ~/.terrible-harness/.system.txt or the local .system.txt`);
       return true;
     }
