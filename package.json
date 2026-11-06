@@ -13,7 +13,8 @@
     "build": "tsup",
     "dev": "tsx src/index.ts",
     "start": "node bin/askgpt.js",
-    "dev:web": "tsx src/web-server.ts"
+    "dev:web": "tsx src/web-server.ts",
+    "check:web": "node scripts/check-web.mjs"
   },
   "keywords": [
     "llm",
