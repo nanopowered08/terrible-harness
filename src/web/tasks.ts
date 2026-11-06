@@ -38,7 +38,22 @@ export function createTask(prompt: string): AgentTask {
   writeTasks([...readTasks(), task]);
   return task;
 }
-/** Used by the future supervisor/worker to persist lifecycle transitions. */
+/** Persist a terminal state for work interrupted by a previous server process. */
+export function recoverInterruptedTasks(): number {
+  const tasks = readTasks();
+  let recovered = 0;
+  for (const task of tasks) {
+    if (task.status === "running" || task.status === "waiting") {
+      task.status = "failed";
+      task.error = "AskGPT Web stopped before this task finished. Review it before submitting again.";
+      task.updatedAt = new Date().toISOString();
+      recovered++;
+    }
+  }
+  if (recovered) writeTasks(tasks);
+  return recovered;
+}
+/** Persist task lifecycle transitions. */
 export function updateTask(id: string, update: Partial<Pick<AgentTask,"status"|"result"|"error">>): AgentTask | null {
   const tasks = readTasks();
   const index = tasks.findIndex(task => task.id === id);
