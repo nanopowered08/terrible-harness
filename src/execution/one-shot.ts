@@ -18,12 +18,18 @@ import type { resolveInput } from "./input.js";
 
 type ResolvedInput = Awaited<ReturnType<typeof resolveInput>>;
 
+export interface OneShotOptions {
+  onContentChunk?: (chunk: string) => void;
+  throwOnError?: boolean;
+}
+
 export async function executeOneShot(
   config: AskGptConfig,
   input: ResolvedInput,
   isStateless: boolean,
   think: boolean,
-): Promise<void> {
+  options: OneShotOptions = {},
+): Promise<string> {
   const { image, finalPrompt } = input;
 
   const context: ChatMessage[] = isStateless ? [] : loadContext();
@@ -79,7 +85,7 @@ export async function executeOneShot(
         context,
         systemPrompt,
         reasoningManager,
-        (chunk) => process.stdout.write(chunk),
+        options.onContentChunk ?? ((chunk) => process.stdout.write(chunk)),
       );
     } else {
       assistantText = await streamChatResponse({
@@ -89,24 +95,26 @@ export async function executeOneShot(
         reasoningManager,
         enableTools: true,
         toolRecords,
-        onContentChunk: (chunk) => process.stdout.write(chunk),
+        onContentChunk: options.onContentChunk ?? ((chunk) => process.stdout.write(chunk)),
       });
     }
   } catch (error: any) {
-    console.error(chalk.red(`\nError: ${error?.message ?? String(error)}`));
+    if (!options.onContentChunk) console.error(chalk.red(`\nError: ${error?.message ?? String(error)}`));
     // Don't leave a user message with no reply in .context.json
     if (!isStateless) {
       context.pop();
       saveContext(context);
     }
+    if (options.throwOnError) throw error;
     process.exitCode = 1;
-    return;
+    return "";
   }
 
-  process.stdout.write("\n");
+  if (!options.onContentChunk) process.stdout.write("\n");
 
   if (!isStateless && (assistantText.trim() || toolRecords.length)) {
     context.push({ role: "assistant", content: withToolNotes(toolRecords, assistantText) });
     saveContext(context);
   }
+  return assistantText;
 }
