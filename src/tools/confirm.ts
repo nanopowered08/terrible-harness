@@ -9,6 +9,10 @@
 import readline from "readline";
 import chalk from "chalk";
 
+export type ToolApprovalHandler = (question: string, preview?: () => void) => Promise<Verdict>;
+let externalApprovalHandler: ToolApprovalHandler | null = null;
+export function setToolApprovalHandler(handler: ToolApprovalHandler | null): void { externalApprovalHandler = handler; }
+
 export interface Verdict {
   approved: boolean;
   reason?: string;
@@ -98,6 +102,7 @@ export function confirmTool(opts: {
   autoApprove?: boolean;     // --yolo: skip everything, caller prints its own summary
 }): Promise<Verdict> {
   if (opts.autoApprove) return Promise.resolve({ approved: true });
+  if (externalApprovalHandler) return externalApprovalHandler(opts.question, opts.preview);
 
   const run = lock.then(async (): Promise<Verdict> => {
     process.stdout.write("\n");
