@@ -2,7 +2,7 @@ import http from "node:http";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { createTask, listTasks, cancelTask } from "./web/tasks.js";
+import { createTask, listTasks, cancelTask, recoverInterruptedTasks } from "./web/tasks.js";
 import { listApprovals, resolveApproval } from "./web/approvals.js";
 import { startAutonomyWorker, stopAutonomyWorker } from "./web/worker.js";
 
@@ -65,6 +65,8 @@ const server = http.createServer(async (req, res) => {
 });
 server.listen(port, host, () => {
   console.log(`AskGPT Web is running at http://${host}:${port}`);
+  const recovered = recoverInterruptedTasks();
+  if (recovered) console.log(`Marked ${recovered} interrupted task(s) as failed for review.`);
   console.log("Autonomy worker started. Tool calls require dashboard approval unless configured otherwise.");
   startAutonomyWorker();
 });
