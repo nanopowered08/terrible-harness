@@ -47,7 +47,7 @@ const server = http.createServer(async (req, res) => {
       const input = await body(req) as { enabled?: unknown; intervalMinutes?: unknown };
       if (input.enabled !== undefined && typeof input.enabled !== "boolean") { json(res, 400, { error: "enabled must be a boolean." }); return; }
       if (input.intervalMinutes !== undefined && typeof input.intervalMinutes !== "number") { json(res, 400, { error: "intervalMinutes must be a number." }); return; }
-      const item = updateInitiative(initiative[1], input);
+      const item = updateInitiative(initiative[1], { enabled: input.enabled as boolean | undefined, intervalMinutes: input.intervalMinutes as number | undefined });
       json(res, item ? 200 : 404, { initiative: item }); return;
     }
     if (req.method === "DELETE" && initiative) {
