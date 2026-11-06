@@ -20,6 +20,7 @@ type ResolvedInput = Awaited<ReturnType<typeof resolveInput>>;
 
 export interface OneShotOptions {
   onContentChunk?: (chunk: string) => void;
+  throwOnError?: boolean;
 }
 
 export async function executeOneShot(
@@ -104,7 +105,9 @@ export async function executeOneShot(
       context.pop();
       saveContext(context);
     }
-    throw error;
+    if (options.throwOnError) throw error;
+    process.exitCode = 1;
+    return "";
   }
 
   if (!options.onContentChunk) process.stdout.write("\n");
