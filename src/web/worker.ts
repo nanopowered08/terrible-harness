@@ -4,6 +4,7 @@ import { closeMcpClients } from "../tools/mcp.js";
 import { setToolApprovalHandler } from "../tools/confirm.js";
 import { requestApproval, rejectAllApprovals } from "./approvals.js";
 import { listTasks, updateTask } from "./tasks.js";
+import { runDueInitiatives } from "./initiatives.js";
 
 let started = false;
 let stopped = false;
@@ -18,8 +19,14 @@ export function startAutonomyWorker(): void {
 }
 async function supervise(): Promise<void> {
   while (!stopped) {
+    try {
+      const launched = runDueInitiatives();
+      if (launched) console.log(`Initiative engine queued ${launched} scheduled check(s).`);
+    } catch (error) {
+      console.error("[Initiative engine]", error);
+    }
     const task = listTasks().find(item => item.status === "queued");
-    if (!task) { await sleep(750); continue; }
+    if (!task) { await sleep(5000); continue; }
     currentTaskId = task.id;
     const config = loadConfig();
     if (!config) {
@@ -36,7 +43,6 @@ async function supervise(): Promise<void> {
       return verdict;
     });
     try {
-      // Autonomy tasks use an isolated context so they cannot race the interactive CLI's context file.
       const result = await executeOneShot(config, { image: null, finalPrompt: task.prompt } as any, true, false, { onContentChunk: () => {}, throwOnError: true });
       if (!stopped) updateTask(task.id, { status: "completed", result: result || "(Task completed without a text response.)" });
     } catch (error) {
