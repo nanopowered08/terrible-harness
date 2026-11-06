@@ -37,7 +37,7 @@ async function supervise(): Promise<void> {
     });
     try {
       // Autonomy tasks use an isolated context so they cannot race the interactive CLI's context file.
-      const result = await executeOneShot(config, { image: null, finalPrompt: task.prompt } as any, true, false, { onContentChunk: () => {} });
+      const result = await executeOneShot(config, { image: null, finalPrompt: task.prompt } as any, true, false, { onContentChunk: () => {}, throwOnError: true });
       if (!stopped) updateTask(task.id, { status: "completed", result: result || "(Task completed without a text response.)" });
     } catch (error) {
       if (!stopped) updateTask(task.id, { status: "failed", error: (error as Error)?.message || String(error) });
