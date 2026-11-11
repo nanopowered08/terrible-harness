@@ -2,7 +2,9 @@ This used to be full. It isn't.
 
 Anyways.
 
-<p align=center><img src="docs/images/banner.png" alt="This is a Terrible-Harness, ngl"></p>
+<p align="center">
+  <img src="docs/images/banner.png" alt="terrible-harness" width="720">
+</p>
 
 # AskGPT (IT'S CALLED TERRIBLE HARNESS-)
 
