@@ -11,8 +11,9 @@ export interface CustomApiConfig {
 
 /** Optional image model for the generate_image tool. The tool only exists when this is set. */
 export interface ImageGenerationConfig {
-  /** "google" = Gemini generateContent (Nano Banana etc.), "openai" = /images/generations (OpenAI-compatible). */
-  provider: "google" | "openai";
+  /** "google" = Gemini generateContent (Nano Banana etc.), "openai" = /images/generations (OpenAI-compatible),
+   *  "openrouter" = OpenRouter's POST /images. */
+  provider: "google" | "openai" | "openrouter";
   model: string;
   /** Falls back to IMAGE_API_KEY, then the provider's usual env var. */
   apiKey?: string;

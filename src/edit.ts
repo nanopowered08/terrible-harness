@@ -618,7 +618,8 @@ async function editImageGeneration(raw: AskGptConfig): Promise<Partial<AskGptCon
     default: cur?.provider ?? "google",
     choices: [
       { name: "Google (Gemini generateContent, e.g. Nano Banana)", value: "google" },
-      { name: "OpenAI-compatible (/images/generations)", value: "openai" }
+      { name: "OpenAI-compatible (/images/generations)", value: "openai" },
+      { name: "OpenRouter (/images)", value: "openrouter" }
     ]
   })) as ImageGenerationConfig["provider"];
 
@@ -636,7 +637,7 @@ async function editImageGeneration(raw: AskGptConfig): Promise<Partial<AskGptCon
   const key = await password({
     message: cur?.apiKey
       ? "API key (leave empty to keep the current one):"
-      : "API key (empty to use IMAGE_API_KEY / GEMINI_API_KEY / OPENAI_API_KEY from the environment):",
+      : "API key (empty to use IMAGE_API_KEY or the provider's usual env var):",
     mask: "*"
   });
 

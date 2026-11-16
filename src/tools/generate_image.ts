@@ -24,22 +24,24 @@ const MAX_IMAGE_BYTES = 30 * 1024 * 1024;
 // Public endpoints, only used when baseURL isn't set in the config.
 const DEFAULT_BASE: Record<ImageGenerationConfig["provider"], string> = {
   google: "https://generativelanguage.googleapis.com/v1beta",
-  openai: "https://api.openai.com/v1"
+  openai: "https://api.openai.com/v1",
+  openrouter: "https://openrouter.ai/api/v1"
 };
 
 const EXT: Record<string, string> = {
   "image/png": "png",
   "image/jpeg": "jpg",
   "image/webp": "webp",
-  "image/gif": "gif"
+  "image/gif": "gif",
+  "image/svg+xml": "svg"
 };
 
 function resolveKey(cfg: ImageGenerationConfig): string | undefined {
   if (cfg.apiKey) return cfg.apiKey;
   if (process.env.IMAGE_API_KEY) return process.env.IMAGE_API_KEY;
-  return cfg.provider === "google"
-    ? process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY
-    : process.env.OPENAI_API_KEY;
+  if (cfg.provider === "google") return process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY;
+  if (cfg.provider === "openrouter") return process.env.OPENROUTER_API_KEY;
+  return process.env.OPENAI_API_KEY;
 }
 
 function slug(s: string): string {
@@ -76,9 +78,12 @@ async function requestGoogle(cfg: ImageGenerationConfig, key: string, prompt: st
   return { images, text: texts.join("\n").trim(), why };
 }
 
-async function requestOpenAI(cfg: ImageGenerationConfig, key: string, prompt: string, signal: AbortSignal) {
-  const base = (cfg.baseURL || DEFAULT_BASE.openai).replace(/\/+$/, "");
-  const res = await fetch(`${base}/images/generations`, {
+// OpenAI-style image endpoints: OpenAI is POST /images/generations, OpenRouter is POST /images.
+// Both answer { data: [{ b64_json | url, media_type? }] }.
+async function requestImagesApi(cfg: ImageGenerationConfig, key: string, prompt: string, signal: AbortSignal) {
+  const base = (cfg.baseURL || DEFAULT_BASE[cfg.provider]).replace(/\/+$/, "");
+  const endpoint = cfg.provider === "openrouter" ? "images" : "images/generations";
+  const res = await fetch(`${base}/${endpoint}`, {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
     body: JSON.stringify({ model: cfg.model, prompt, n: 1 }),
@@ -90,7 +95,7 @@ async function requestOpenAI(cfg: ImageGenerationConfig, key: string, prompt: st
   const images: RawImage[] = [];
   for (const item of data?.data ?? []) {
     if (item?.b64_json) {
-      images.push({ data: Buffer.from(item.b64_json, "base64") });
+      images.push({ data: Buffer.from(item.b64_json, "base64"), mime: item.media_type });
     } else if (item?.url) {
       const img = await fetch(item.url, { signal });
       if (!img.ok) throw new Error(`could not download image (HTTP ${img.status})`);
@@ -143,9 +148,9 @@ export function createGenerateImageTool(cfg: ImageGenerationConfig | undefined, 
 
       let result;
       try {
-        result = cfg.provider === "openai"
-          ? await requestOpenAI(cfg, key, prompt, signal)
-          : await requestGoogle(cfg, key, prompt, signal);
+        result = cfg.provider === "google"
+          ? await requestGoogle(cfg, key, prompt, signal)
+          : await requestImagesApi(cfg, key, prompt, signal);
       } catch (err: any) {
         return { success: false, error: err?.name === "TimeoutError" ? "Image request timed out." : err?.message ?? String(err) };
       }
