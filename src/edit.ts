@@ -1,6 +1,6 @@
 // src/edit.ts
 // The /edit commands of the REPL:
-//   /edit cfg     browse and change config.json options, or switch to another configuration
+//   /edit cfg     browse and change config.json options (incl. image generation), or switch to another configuration
 //   /edit mcp     add, change, disable or remove MCP servers
 //   /edit system  open the system prompt in your text editor, then reload it
 //
@@ -14,7 +14,7 @@ import path from "path";
 import { spawnSync } from "child_process";
 import chalk from "chalk";
 import { select, input, password, confirm } from "@inquirer/prompts";
-import type { AskGptConfig, McpServerConfig, ProviderType } from "./types.js";
+import type { AskGptConfig, ImageGenerationConfig, McpServerConfig, ProviderType } from "./types.js";
 import {
   GLOBAL_CONFIG_DIR,
   GLOBAL_CONFIG_FILE,
@@ -529,6 +529,10 @@ function describeValue(raw: AskGptConfig, key: string, host: EditHost): string {
       return raw.providerOptions ? short(JSON.stringify(raw.providerOptions), 50) : chalk.dim("(none)");
     case "aiComment":
       return raw.aiComment ? "on" : "off";
+    case "imageGeneration": {
+      const g = raw.imageGeneration;
+      return g?.model ? `${g.provider} / ${g.model}` : chalk.dim("(not set up)");
+    }
     case "mcpServers": {
       const n = Object.keys(raw.mcpServers ?? {}).length;
       return n ? `${n} server${n === 1 ? "" : "s"}` : chalk.dim("(none)");
@@ -559,12 +563,13 @@ async function editConfig(host: EditHost): Promise<void> {
       { key: "providerOptions", label: "Provider options" },
       { key: "aiComment", label: "AI comment" },
       ...(raw.provider === "custom" ? [{ key: "custom", label: "Custom API" }] : []),
+      { key: "imageGeneration", label: "Image generation" },
       { key: "mcpServers", label: "MCP servers" }
     ];
 
     const pick = await select({
       message: `Configuration: ${tilde(file)}`,
-      pageSize: 14,
+      pageSize: 15,
       choices: [
         ...rows.map((r) => ({ name: `${r.label.padEnd(20)} ${describeValue(raw, r.key, host)}`, value: r.key })),
         { name: chalk.cyan("Load another configuration..."), value: "__load" },
@@ -589,6 +594,57 @@ async function editConfig(host: EditHost): Promise<void> {
     host.updateConfig(cleaned);
     console.log(chalk.green(`Saved to ${tilde(file)}.`));
   }
+}
+
+/** Image model for the generate_image tool (saved into ./images). */
+async function editImageGeneration(raw: AskGptConfig): Promise<Partial<AskGptConfig> | null> {
+  const cur = raw.imageGeneration;
+
+  if (cur?.model) {
+    const action = await select({
+      message: `Image generation: ${cur.provider} / ${cur.model}`,
+      choices: [
+        { name: "Change it", value: "change" },
+        { name: "Remove it (the tool will say it isn't set up)", value: "remove" },
+        { name: "Back", value: "back" }
+      ]
+    });
+    if (action === "back") return null;
+    if (action === "remove") return { imageGeneration: undefined };
+  }
+
+  const provider = (await select({
+    message: "Image API type:",
+    default: cur?.provider ?? "google",
+    choices: [
+      { name: "Google (Gemini generateContent, e.g. Nano Banana)", value: "google" },
+      { name: "OpenAI-compatible (/images/generations)", value: "openai" }
+    ]
+  })) as ImageGenerationConfig["provider"];
+
+  const model = (await input({
+    message: "Image model ID:",
+    default: cur?.model ?? "",
+    validate: (v) => v.trim() !== "" || "Required"
+  })).trim();
+
+  const baseURL = (await input({
+    message: "Base URL (empty for the provider's default):",
+    default: cur?.baseURL ?? ""
+  })).trim();
+
+  const key = await password({
+    message: cur?.apiKey
+      ? "API key (leave empty to keep the current one):"
+      : "API key (empty to use IMAGE_API_KEY / GEMINI_API_KEY / OPENAI_API_KEY from the environment):",
+    mask: "*"
+  });
+
+  const next: ImageGenerationConfig = { provider, model };
+  if (baseURL) next.baseURL = baseURL;
+  const apiKey = key || cur?.apiKey;
+  if (apiKey) next.apiKey = apiKey;
+  return { imageGeneration: next };
 }
 
 /** Asks for a new value for one option. Returns the changes to apply, or null for none. */
@@ -672,6 +728,8 @@ async function editOption(key: string, raw: AskGptConfig, host: EditHost): Promi
     case "custom":
       console.log(chalk.gray("The custom API (URL, headers, payload template) is easiest to edit by hand in the config file."));
       return null;
+    case "imageGeneration":
+      return editImageGeneration(raw);
     case "mcpServers":
       await editMcp(host);
       return null;

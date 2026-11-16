@@ -56,6 +56,12 @@ export function summarizeToolCall(name: string, input: any, output: any): string
       return `search_web "${cut(arg.query ?? output?.query ?? "", 120)}": ${Array.isArray(output?.results) ? output.results.length : "?"} results`;
     case "open_webpage":
       return `open_webpage ${cut(arg.url ?? "", 200)}: ${output?.error ? `failed (${cut(output.error, MAX_ERR_CHARS)})` : "opened"}`;
+    case "generate_image": {
+      const prompt = cut(arg.prompt ?? "", 120);
+      if (output?.rejected) return `generate_image "${prompt}": REJECTED by user, nothing generated`;
+      if (output?.success === false) return `generate_image "${prompt}": failed (${cut(output.error, MAX_ERR_CHARS)})`;
+      return `generate_image "${prompt}": saved ${Array.isArray(output?.files) ? output.files.join(", ") : "?"}`;
+    }
     default: {
       const args = cut(JSON.stringify(arg), 160);
       if (output?.rejected) return `${name} ${args}: REJECTED by user, not run`;

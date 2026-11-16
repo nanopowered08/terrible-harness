@@ -7,13 +7,15 @@ import { searchWeb } from "./search.js";
 import { loadCustomTools } from "./loader.js";
 import { openWebpage } from "./open_webpage.js";
 import { loadMcpTools } from "./mcp.js";
-import type { McpServerConfig } from "../types.js";
+import { createGenerateImageTool } from "./generate_image.js";
+import type { McpServerConfig, ImageGenerationConfig } from "../types.js";
 
 export interface ToolRegistryOptions {
   autoApprove?: boolean;
   provider?: string;
   lastUserPrompt?: string;
   mcpServers?: Record<string, McpServerConfig>;
+  imageGeneration?: ImageGenerationConfig;
 }
 
 /** Where each tool came from, for the banner and /tools. Rebuilt on every getTools() call. */
@@ -158,6 +160,9 @@ export async function getTools(options: ToolRegistryOptions = {}): Promise<Recor
       }
     })
   };
+
+  // Always registered; it tells the model to point the user at /edit cfg until it's set up.
+  tools.generate_image = createGenerateImageTool(options.imageGeneration, Boolean(options.autoApprove));
 
   const origins = new Map<string, ToolOrigin>();
   for (const name of Object.keys(tools)) origins.set(name, { kind: "built-in" });

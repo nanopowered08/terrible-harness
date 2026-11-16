@@ -81,7 +81,8 @@ export async function startRepl(config: AskGptConfig): Promise<void> {
     const loadedTools = await getTools({
       autoApprove: config.autoApproveTools,
       provider: config.provider,
-      mcpServers: config.mcpServers
+      mcpServers: config.mcpServers,
+      imageGeneration: config.imageGeneration
     });
     const origins = getToolOrigins();
     const localNames = Object.keys(loadedTools).filter((n) => origins.get(n)?.kind !== "mcp");
@@ -208,7 +209,8 @@ export async function startRepl(config: AskGptConfig): Promise<void> {
       const tools = await getTools({
         autoApprove: config.autoApproveTools,
         provider: config.provider,
-        mcpServers: config.mcpServers
+        mcpServers: config.mcpServers,
+        imageGeneration: config.imageGeneration
       });
       const origins = getToolOrigins();
 

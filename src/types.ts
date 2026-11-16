@@ -9,6 +9,17 @@ export interface CustomApiConfig {
   reasoningPath?: string;
 }
 
+/** Optional image model for the generate_image tool. The tool only exists when this is set. */
+export interface ImageGenerationConfig {
+  /** "google" = Gemini generateContent (Nano Banana etc.), "openai" = /images/generations (OpenAI-compatible). */
+  provider: "google" | "openai";
+  model: string;
+  /** Falls back to IMAGE_API_KEY, then the provider's usual env var. */
+  apiKey?: string;
+  /** Falls back to the provider's public endpoint. */
+  baseURL?: string;
+}
+
 export interface AskGptConfig {
   provider: ProviderType;
   model: string;
@@ -27,6 +38,8 @@ export interface AskGptConfig {
   aiComment?: boolean;
   /** MCP servers to connect to; their tools show up next to the built-in tools. */
   mcpServers?: Record<string, McpServerConfig>;
+  /** Image model for the generate_image tool (saves into ./images). Leave out to disable the tool. */
+  imageGeneration?: ImageGenerationConfig;
 }
 
 export interface McpServerConfig {

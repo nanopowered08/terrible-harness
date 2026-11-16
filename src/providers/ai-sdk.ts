@@ -90,7 +90,8 @@ export async function streamChatResponse(options: StreamResponseOptions): Promis
         autoApprove: config.autoApproveTools,
         provider: config.provider,
         lastUserPrompt: lastUserMessage,
-        mcpServers: config.mcpServers
+        mcpServers: config.mcpServers,
+        imageGeneration: config.imageGeneration
       })
     : undefined;
 
