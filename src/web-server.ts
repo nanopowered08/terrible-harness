@@ -1,6 +1,7 @@
 import http from "node:http";
 import fs from "node:fs";
 import path from "node:path";
+import { sniffImage } from "./attachments.js";
 import { fileURLToPath } from "node:url";
 import { createTask, listTasks, cancelTask, recoverInterruptedTasks, readTaskImage, MAX_TASK_IMAGES, MAX_TASK_IMAGE_BYTES } from "./web/tasks.js";
 import { listApprovals, resolveApproval } from "./web/approvals.js";
@@ -68,6 +69,17 @@ const server = http.createServer(async (req, res) => {
         return { name: typeof item.name === "string" ? item.name : "image", data: Buffer.from(item.data, "base64") };
       });
       json(res, 201, { task: createTask(input.prompt, images) }); return;
+    }
+    const generated = url.pathname.match(/^\/api\/generated\/([A-Za-z0-9._-]+)$/);
+    if (req.method === "GET" && generated) {
+      // Only files directly inside ./images (where generate_image saves), and only if they really are images.
+      const file = path.join(process.cwd(), "images", generated[1]);
+      let data: Buffer | null = null;
+      try { data = fs.readFileSync(file); } catch { /* missing */ }
+      const mediaType = data ? sniffImage(data) : null;
+      if (!data || !mediaType) { json(res, 404, { error: "Image not found." }); return; }
+      res.writeHead(200, { "content-type": mediaType, "content-length": data.length, "cache-control": "private, max-age=3600", "x-content-type-options": "nosniff", "content-security-policy": "default-src 'none'", "content-disposition": "inline" });
+      res.end(data); return;
     }
     const taskImage = url.pathname.match(/^\/api\/tasks\/([0-9a-f-]+)\/images\/(\d+)$/i);
     if (req.method === "GET" && taskImage) {
