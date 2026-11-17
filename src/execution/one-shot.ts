@@ -31,6 +31,8 @@ export async function executeOneShot(
   options: OneShotOptions = {},
 ): Promise<string> {
   const { image, finalPrompt } = input;
+  // Extra images beyond stdin (the web dashboard attaches these to tasks)
+  const extraImages: { data: Buffer; mediaType: string; name: string }[] = (input as any).images ?? [];
 
   const context: ChatMessage[] = isStateless ? [] : loadContext();
   const systemPrompt = resolveSystemPrompt(loadSystemPrompt());
@@ -38,6 +40,7 @@ export async function executeOneShot(
   const att = parseAttachments(finalPrompt);
   const images = [
     ...att.images,
+    ...extraImages,
     ...(image ? [{ ...image, name: "stdin" }] : []),
   ];
   const msg = buildUserMessage(att.text, images);

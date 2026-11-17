@@ -3,7 +3,7 @@ import { executeOneShot } from "../execution/one-shot.js";
 import { closeMcpClients } from "../tools/mcp.js";
 import { setToolApprovalHandler } from "../tools/confirm.js";
 import { requestApproval, rejectAllApprovals } from "./approvals.js";
-import { listTasks, updateTask } from "./tasks.js";
+import { listTasks, updateTask, readTaskImage } from "./tasks.js";
 import { runDueInitiatives } from "./initiatives.js";
 
 let started = false;
@@ -43,7 +43,8 @@ async function supervise(): Promise<void> {
       return verdict;
     });
     try {
-      const result = await executeOneShot(config, { image: null, finalPrompt: task.prompt } as any, true, false, { onContentChunk: () => {}, throwOnError: true });
+      const images = (task.images ?? []).flatMap((_, i) => { const img = readTaskImage(task.id, i); return img ? [img] : []; });
+      const result = await executeOneShot(config, { image: null, images, finalPrompt: task.prompt } as any, true, false, { onContentChunk: () => {}, throwOnError: true });
       if (!stopped) updateTask(task.id, { status: "completed", result: result || "(Task completed without a text response.)" });
     } catch (error) {
       if (!stopped) updateTask(task.id, { status: "failed", error: (error as Error)?.message || String(error) });

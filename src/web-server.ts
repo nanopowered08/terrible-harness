@@ -2,7 +2,7 @@ import http from "node:http";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { createTask, listTasks, cancelTask, recoverInterruptedTasks } from "./web/tasks.js";
+import { createTask, listTasks, cancelTask, recoverInterruptedTasks, readTaskImage, MAX_TASK_IMAGES, MAX_TASK_IMAGE_BYTES } from "./web/tasks.js";
 import { listApprovals, resolveApproval } from "./web/approvals.js";
 import { listInitiatives, createInitiative, updateInitiative, deleteInitiative } from "./web/initiatives.js";
 import { startAutonomyWorker, stopAutonomyWorker } from "./web/worker.js";
@@ -18,14 +18,19 @@ function json(res: http.ServerResponse, status: number, value: unknown): void {
   res.writeHead(status, { "content-type": "application/json; charset=utf-8", "cache-control": "no-store", "x-content-type-options": "nosniff" });
   res.end(JSON.stringify(value));
 }
-async function body(req: http.IncomingMessage): Promise<unknown> {
-  let raw = "";
+async function body(req: http.IncomingMessage, limit = 16000): Promise<unknown> {
+  const chunks: Buffer[] = [];
+  let size = 0;
   for await (const chunk of req) {
-    raw += chunk.toString();
-    if (raw.length > 16000) throw new Error("Request body is too large.");
+    size += (chunk as Buffer).length;
+    if (size > limit) throw new Error("Request body is too large.");
+    chunks.push(chunk as Buffer);
   }
+  const raw = Buffer.concat(chunks).toString("utf8");
   return raw ? JSON.parse(raw) : {};
 }
+// Images arrive base64-encoded inside the JSON body, so allow ~4/3 of the raw size plus the prompt.
+const TASK_BODY_LIMIT = Math.ceil(MAX_TASK_IMAGES * MAX_TASK_IMAGE_BYTES * 4 / 3) + 64_000;
 const server = http.createServer(async (req, res) => {
   try {
     const url = new URL(req.url ?? "/", `http://${host}:${port}`);
@@ -55,9 +60,21 @@ const server = http.createServer(async (req, res) => {
       json(res, ok ? 200 : 404, { ok }); return;
     }
     if (req.method === "POST" && url.pathname === "/api/tasks") {
-      const input = await body(req) as { prompt?: unknown };
+      const input = await body(req, TASK_BODY_LIMIT) as { prompt?: unknown; images?: unknown };
       if (typeof input.prompt !== "string") { json(res, 400, { error: "A string prompt is required." }); return; }
-      json(res, 201, { task: createTask(input.prompt) }); return;
+      if (input.images !== undefined && !Array.isArray(input.images)) { json(res, 400, { error: "images must be an array." }); return; }
+      const images = (input.images as { name?: unknown; data?: unknown }[] | undefined ?? []).map(item => {
+        if (typeof item?.data !== "string") throw new Error("Each image needs base64 data.");
+        return { name: typeof item.name === "string" ? item.name : "image", data: Buffer.from(item.data, "base64") };
+      });
+      json(res, 201, { task: createTask(input.prompt, images) }); return;
+    }
+    const taskImage = url.pathname.match(/^\/api\/tasks\/([0-9a-f-]+)\/images\/(\d+)$/i);
+    if (req.method === "GET" && taskImage) {
+      const image = readTaskImage(taskImage[1], Number(taskImage[2]));
+      if (!image) { json(res, 404, { error: "Image not found." }); return; }
+      res.writeHead(200, { "content-type": image.mediaType, "content-length": image.data.length, "cache-control": "private, max-age=3600", "x-content-type-options": "nosniff", "content-security-policy": "default-src 'none'", "content-disposition": "inline" });
+      res.end(image.data); return;
     }
     const approval = url.pathname.match(/^\/api\/approvals\/([0-9a-f-]+)$/i);
     if (req.method === "POST" && approval) {
